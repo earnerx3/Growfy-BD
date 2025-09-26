@@ -45,7 +45,6 @@
         .nav-item-wrapper { flex: 1; } .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; } .nav-item i { font-size: 20px; } .nav-item span { font-size: 10px; margin-top: 3px; } .nav-item.active { color: var(--primary-color); }
 
         /* প্রোফাইল কার্ড */
-        /* <<< পরিবর্তন: কার্ড একটু ছোট করা হয়েছে >>> */
         .profile-header-card { text-align: center; background: var(--card-bg-color); padding: 15px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 15px; transition: background 0.5s ease; }
         .monetized-profile-card { background: linear-gradient(135deg, #fff3e0, #ffe8cc); }
         .profile-avatar-wrapper { position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto; cursor: pointer; }
@@ -63,7 +62,6 @@
         .following-btn { background-color: #e4e6eb; color: var(--text-color); }
         .following-btn:hover { background-color: #d0d2d7; }
 
-        /* <<< পরিবর্তন: স্ট্যাটাস বক্সের নতুন স্টাইল >>> */
         .profile-stats-grid { display: flex; justify-content: space-around; padding: 12px; border-radius: 12px; background-color: #f7f8fa; margin-top: 15px; }
         .stat-item { text-align: center; }
         .stat-item .stat-number { font-weight: 700; font-size: 18px; }
@@ -108,10 +106,34 @@
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
         .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
 
-        /* <<< নতুন: অ্যাভাটার গ্যালারির জন্য স্টাইল >>> */
-        .avatar-selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 15px; margin-top: 10px; }
-        .avatar-option { width: 100%; border-radius: 50%; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 3px solid transparent; }
-        .avatar-option:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        /* <<< পরিবর্তন: অ্যাভাটার পপআপ এবং গ্যালারির নতুন স্টাইল >>> */
+        #avatarGridModal .modal-panel {
+            max-height: 80vh; /* পপআপের সর্বোচ্চ উচ্চতা নির্ধারণ */
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-body {
+            overflow-y: auto; /* অ্যাভাটার লিস্ট স্ক্রল করার সুবিধা */
+            padding: 5px;
+        }
+        .avatar-selection-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); /* প্রতি সারিতে ৪টি অ্যাভাটার */
+            gap: 15px; 
+            margin-top: 10px; 
+        }
+        .avatar-option { 
+            width: 100%; 
+            aspect-ratio: 1 / 1; /* অ্যাভাটারগুলো যেন গোলাকার থাকে */
+            border-radius: 50%; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            border: 3px solid transparent; 
+        }
+        .avatar-option:hover { 
+            transform: scale(1.05); 
+            box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+        }
     </style>
 </head>
 <body>
@@ -163,8 +185,10 @@
                 <h3 class="modal-title">আপনার অ্যাভাটার বেছে নিন</h3>
                 <button class="close-modal">&times;</button>
             </div>
-            <div id="avatar-selection-grid" class="avatar-selection-grid">
-                </div>
+            <div class="modal-body">
+                <div id="avatar-selection-grid" class="avatar-selection-grid">
+                    </div>
+            </div>
         </div>
     </div>
 
@@ -202,7 +226,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        const avatarGridModal = document.getElementById('avatarGridModal'); // <<< পরিবর্তন
+        const avatarGridModal = document.getElementById('avatarGridModal');
         const editProfileModal = document.getElementById('editProfileModal');
         let currentUserData = null; 
 
@@ -322,24 +346,41 @@
             }
         }));
         
-        // <<< পরিবর্তন শুরু: নতুন অ্যাভাটার সিলেকশন সিস্টেম >>>
+        // <<< পরিবর্তন: নতুন অ্যাভাটার লিস্ট যোগ করা হয়েছে >>>
         const preselectedAvatars = [
-            "https://api.dicebear.com/9.x/micah/svg?seed=Felix", "https://api.dicebear.com/9.x/micah/svg?seed=Misty",
-            "https://api.dicebear.com/9.x/personas/svg?seed=John", "https://api.dicebear.com/9.x/personas/svg?seed=Jane",
-            "https://api.dicebear.com/9.x/adventurer-neutral/svg?seed=Leo", "https://api.dicebear.com/9.x/adventurer-neutral/svg?seed=Luna",
-            "https://api.dicebear.com/9.x/bottts/svg?seed=Max", "https://api.dicebear.com/9.x/bottts/svg?seed=Zoe",
-            "https://api.dicebear.com/9.x/big-smile/svg?seed=Sam", "https://api.dicebear.com/9.x/big-smile/svg?seed=Lia",
-            "https://api.dicebear.com/9.x/notionists/svg?seed=Alex", "https://api.dicebear.com/9.x/notionists/svg?seed=Mia"
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Oliver",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Sophia",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Ethan",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Amelia",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Noah",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Isabella",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Lucas",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Ava",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=James",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Mia",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Henry",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Charlotte",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Alexander",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Grace",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=William",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Luna",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Daniel",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Benjamin",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Emily",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Jacob",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Olivia",
+            "https://api.dicebear.com/9.x/adventurer/svg?seed=Michael"
         ];
 
         function populateAvatarGrid() {
             const grid = document.getElementById('avatar-selection-grid');
-            grid.innerHTML = '';
+            grid.innerHTML = ''; // পুরোনো অ্যাভাটার মুছে ফেলা হলো
             preselectedAvatars.forEach(url => {
                 const img = document.createElement('img');
                 img.src = url;
                 img.className = 'avatar-option';
                 img.alt = 'Avatar Option';
+                img.loading = 'lazy'; // ছবির লোডিং অপ্টিমাইজ করা হলো
                 img.addEventListener('click', () => selectAvatar(url));
                 grid.appendChild(img);
             });
@@ -370,8 +411,6 @@
                  openModal(avatarGridModal);
              }
         });
-        // <<< পরিবর্তন শেষ >>>
-
 
         document.getElementById('editProfileBtn').addEventListener('click', async (e) => {
             e.preventDefault();
@@ -384,7 +423,6 @@
             openModal(editProfileModal);
         });
 
-        // <<< পরিবর্তন শুরু: প্রোফাইল এডিটে ভ্যালিডেশন যুক্ত করা হয়েছে >>>
         document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const user = auth.currentUser;
@@ -396,11 +434,11 @@
             // ভ্যালিডেশন চেক
             if (fullName.length < 7 || fullName.length > 9) {
                 alert('নাম অবশ্যই ৭ থেকে ৯ অক্ষরের মধ্যে হতে হবে।');
-                return; // সাবমিট থামিয়ে দিন
+                return;
             }
             if (bio.length < 14 || bio.length > 17) {
                 alert('বায়ো অবশ্যই ১৪ থেকে ১৭ অক্ষরের মধ্যে হতে হবে।');
-                return; // সাবমিট থামিয়ে দিন
+                return;
             }
             
             const saveBtn = document.getElementById('saveProfileBtn');
@@ -417,7 +455,6 @@
                 saveBtn.disabled = false;
             }
         });
-        // <<< পরিবর্তন শেষ >>>
 
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
