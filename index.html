@@ -138,10 +138,8 @@
         .nav-item span { font-size: 10px; margin-top: 3px; } 
         .nav-item.active { color: var(--primary-color); }
 
-        /* Added priority post indicator */
         .priority-post { border-left: 3px solid var(--primary-color); }
         
-        /* Added smooth loading animation */
         .post-card.loading { opacity: 0.7; pointer-events: none; }
     </style>
 </head>
@@ -227,31 +225,41 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         const commentModal = document.getElementById('commentModal');
         const profilePreviewModal = document.getElementById('profilePreviewModal');
+        
         let lastVisiblePost = null, isLoading = false, currentUserData = null;
+        let initialLoadComplete = false; // [FIX-1] পোস্টের ক্রম ঠিক করার জন্য নতুন ফ্ল্যাগ
         let displayedPostIds = new Set();
         let postObserver;
-        let currentPreviewUserId = null; // Track current preview user
+        let currentPreviewUserId = null;
 
         let lastAdShown = 0;
 
         async function showAdAfterAction() {
             const now = Date.now();
-            if (now - lastAdShown < 30000) {
-                console.log("[v0] Ad skipped due to 30-second cooldown.");
-                return;
-            }
+            if (now - lastAdShown < 30000) return;
 
             if (typeof show_9885140 === 'function') {
                 try {
                     await show_9885140();
                     lastAdShown = now;
-                    console.log("[v0] Interstitial ad was shown successfully.");
                 } catch (error) {
                     console.error("[v0] Ad failed to show:", error);
                 }
-            } else {
-                console.warn("[v0] Ad SDK function (show_9885140) not found.");
             }
+        }
+        
+        // [FIX-2] LocalStorage থেকে দেখা পোস্টের তালিকা আনার ফাংশন
+        function getSeenPostsFromStorage() {
+            const seen = localStorage.getItem('growfy_seen_posts');
+            return seen ? new Set(JSON.parse(seen)) : new Set();
+        }
+
+        // [FIX-2] দেখা পোস্টের তালিকা LocalStorage-এ আপডেট করার ফাংশন
+        function updateSeenPostsInStorage(postId) {
+            const seenPosts = getSeenPostsFromStorage();
+            seenPosts.add(postId);
+            const seenArray = Array.from(seenPosts).slice(-500); // মেমোরি বাঁচাতে শুধু শেষ ৫০০টি আইডি রাখা হলো
+            localStorage.setItem('growfy_seen_posts', JSON.stringify(seenArray));
         }
 
         function getLikedPostsFromStorage() {
@@ -292,12 +300,20 @@
         function renderPosts(posts, prepend = false) {
             let postsHTML = '';
             const likedPosts = getLikedPostsFromStorage();
+            const seenPosts = getSeenPostsFromStorage(); // [FIX-2] দেখা পোস্টের তালিকা আনা হলো
 
             posts.forEach(post => {
                 if (!post || !post.authorName || !post.text || !post.createdAt) {
                     console.warn("[v0] Skipping a malformed post object:", post);
                     return; 
                 }
+
+                // [FIX-2] যদি পোস্টটি আগে দেখা হয়ে থাকে এবং এটি রিয়েল-টাইম নতুন পোস্ট না হয়, তবে এটি এড়িয়ে যাওয়া হবে
+                if (seenPosts.has(post.id) && !prepend) {
+                    console.log(`[v0] Skipping already seen post: ${post.id}`);
+                    return;
+                }
+                
                 if (displayedPostIds.has(post.id) && !prepend) return;
                 displayedPostIds.add(post.id);
                 
@@ -382,10 +398,10 @@
             try {
                 let allPosts = [];
                 
-                if (currentUserData?.following && currentUserData.following.length > 0) {
+                if (firstPage && currentUserData?.following && currentUserData.following.length > 0) {
                     console.log("[v0] Fetching posts from followed users first");
                     const followedQuery = db.collection('posts')
-                        .where('authorId', 'in', currentUserData.following.slice(0, 10)) // Firestore limit
+                        .where('authorId', 'in', currentUserData.following.slice(0, 10))
                         .orderBy('createdAt', 'desc')
                         .limit(3);
                     
@@ -398,7 +414,7 @@
                     allPosts.push(...followedPosts);
                 }
 
-                let generalQuery = db.collection('posts').orderBy('createdAt', 'desc').limit(5);
+                let generalQuery = db.collection('posts').orderBy('createdAt', 'desc').limit(10); // লোড সংখ্যা বাড়ান যেতে পারে
                 if (lastVisiblePost && !firstPage) {
                     generalQuery = generalQuery.startAfter(lastVisiblePost);
                 }
@@ -411,16 +427,13 @@
 
                 allPosts.push(...generalPosts);
                 
-                // Remove duplicates and sort
                 const uniquePosts = allPosts.filter((post, index, self) => 
                     index === self.findIndex(p => p.id === post.id)
                 );
                 
                 uniquePosts.sort((a, b) => {
-                    // Followed users' posts first
                     if (a.isFollowedUser && !b.isFollowedUser) return -1;
                     if (!a.isFollowedUser && b.isFollowedUser) return 1;
-                    // Then by creation time
                     return b.createdAt?.toDate() - a.createdAt?.toDate();
                 });
 
@@ -433,7 +446,7 @@
                     renderPosts(uniquePosts);
                 }
                 
-                if (generalPosts.length < 5) {
+                if (generalPosts.length < 10) {
                     loadingIndicator.textContent = 'আর কোনো পোস্ট নেই।';
                 } else {
                     loadingIndicator.style.display = 'none';
@@ -444,6 +457,9 @@
                 loadingIndicator.textContent = 'পোস্ট লোড করতে সমস্যা হয়েছে।';
             } finally {
                 isLoading = false;
+                if (firstPage) {
+                    initialLoadComplete = true; // [FIX-1] প্রাথমিক লোড শেষ, এখন রিয়েল-টাইম পোস্ট গ্রহণ করা হবে
+                }
             }
         }
         
@@ -489,9 +505,7 @@
             const text = commentInput.value.trim();
 
             if (!text || !currentUserData || !postId) {
-                if (!currentUserData) {
-                    alert("আপনার তথ্য এখনো লোড হচ্ছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।");
-                }
+                if (!currentUserData) alert("আপনার তথ্য এখনো লোড হচ্ছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।");
                 return;
             }
             
@@ -513,7 +527,7 @@
                     authorName: currentUserData.fullName,
                     authorAvatar,
                     authorIsVerified: currentUserData.isVerified || false,
-                    authorIsMonetized: currentUserData.isMonetized || false, // Add monetization status
+                    authorIsMonetized: currentUserData.isMonetized || false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
@@ -531,9 +545,7 @@
 
                 await batch.commit();
                 commentInput.value = '';
-
                 showAdAfterAction();
-
             } catch(error) {
                 console.error("[v0] Error posting comment:", error);
                 alert("কমেন্ট পোস্ট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
@@ -552,7 +564,6 @@
             const isLiked = !likeBtn.classList.contains('liked');
             likeBtn.disabled = true;
 
-            // UI immediate update
             likeBtn.classList.toggle('liked');
             likeBtn.querySelector('i').classList.toggle('far');
             likeBtn.querySelector('i').classList.toggle('fas');
@@ -588,7 +599,6 @@
                 console.error("[v0] Error updating like:", error);
                 alert("লাইক করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
                 
-                // Revert UI on error
                 likeBtn.classList.toggle('liked');
                 likeBtn.querySelector('i').classList.toggle('far');
                 likeBtn.querySelector('i').classList.toggle('fas');
@@ -598,16 +608,13 @@
             }
         }
 
-        // ---------- MODIFIED FUNCTION START ----------
         async function handleFollow(authorId, followBtn) {
-            if (!auth.currentUser) return; // User not logged in
+            if (!auth.currentUser) return;
 
             const wasFollowing = followBtn.classList.contains('following-btn') || followBtn.classList.contains('following');
             const originalText = followBtn.textContent;
-
             followBtn.disabled = true; 
             
-            // UI immediate update for responsiveness
             if (wasFollowing) {
                 followBtn.classList.remove('following-btn', 'following');
                 followBtn.classList.add('follow-btn');
@@ -620,40 +627,25 @@
 
             try {
                 const currentUserRef = db.collection('users').doc(auth.currentUser.uid);
-                // Get a reference to the user who is being followed
                 const followedUserRef = db.collection('users').doc(authorId);
-
-                // Create a batch write to perform both updates atomically
                 const batch = db.batch();
 
                 if (wasFollowing) {
-                    // Unfollow Logic: Remove from both arrays
                     batch.update(currentUserRef, { following: firebase.firestore.FieldValue.arrayRemove(authorId) });
                     batch.update(followedUserRef, { followers: firebase.firestore.FieldValue.arrayRemove(auth.currentUser.uid) });
-                    
-                    // Update local state if needed
-                    if (currentUserData.following) {
-                        currentUserData.following = currentUserData.following.filter(id => id !== authorId);
-                    }
+                    if (currentUserData.following) currentUserData.following = currentUserData.following.filter(id => id !== authorId);
                 } else {
-                    // Follow Logic: Add to both arrays
                     showAdAfterAction();
                     batch.update(currentUserRef, { following: firebase.firestore.FieldValue.arrayUnion(authorId) });
                     batch.update(followedUserRef, { followers: firebase.firestore.FieldValue.arrayUnion(auth.currentUser.uid) });
-
-                    // Update local state if needed
                     if (!currentUserData.following) currentUserData.following = [];
                     currentUserData.following.push(authorId);
                 }
-
-                // Commit the batch
                 await batch.commit();
-
             } catch (error) {
                 console.error("[v0] Error updating follow status:", error);
                 alert("অনুসরণ করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
 
-                // Revert UI on error
                 if (wasFollowing) {
                     followBtn.classList.remove('follow-btn');
                     followBtn.classList.add('following-btn', 'following');
@@ -666,7 +658,6 @@
                 followBtn.disabled = false; 
             }
         }
-        // ---------- MODIFIED FUNCTION END ----------
 
         function setupPostObserver() {
             if (postObserver) postObserver.disconnect();
@@ -674,7 +665,9 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const postId = entry.target.dataset.id;
+                        // ভিউ কাউন্ট বাড়ানোর পাশাপাশি LocalStorage-এ 'দেখা পোস্ট' হিসেবে সেভ করা
                         db.collection('posts').doc(postId).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(err => {});
+                        updateSeenPostsInStorage(postId); // [FIX-2] এই ফাংশনটি এখানে কল করা হলো
                         postObserver.unobserve(entry.target);
                     }
                 });
@@ -694,7 +687,7 @@
                 if (!userDoc.exists) return;
                 
                 const userData = userDoc.data();
-                currentPreviewUserId = userId; // Store current preview user ID
+                currentPreviewUserId = userId;
                 
                 document.getElementById('previewAvatar').src = userData.profileImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${userData.fullName ? userData.fullName.charAt(0) : '?'}`;
                 
@@ -731,20 +724,25 @@
                 setupPostObserver();
                 db.collection('users').doc(user.uid).onSnapshot(doc => {
                     if (doc.exists) {
+                        const firstLoad = !currentUserData; // প্রথমবার ডেটা লোড হচ্ছে কিনা তা চেক করা
                         currentUserData = doc.data();
                         const avatar = currentUserData.profileImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${currentUserData.fullName ? currentUserData.fullName.charAt(0) : '?'}`;
                         document.getElementById('createPostPic').src = avatar;
+
+                        // শুধুমাত্র প্রথমবার ব্যবহারকারীর ডেটা লোড হওয়ার পরেই পোস্ট আনা হবে
+                        if(firstLoad) {
+                            fetchPosts(true);
+                        }
                     }
                 }, err => console.error("[v0] Error fetching user data:", err));
                 
-                fetchPosts(true);
-
                 db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                     snapshot.docChanges().forEach(change => {
                         const postData = { id: change.doc.id, ...change.doc.data() };
                         const existingPost = document.querySelector(`.post-card[data-id="${postData.id}"]`);
                         
-                        if (change.type === 'added' && !existingPost && !displayedPostIds.has(postData.id)) {
+                        // [FIX-1] এখানে initialLoadComplete ফ্ল্যাগ চেক করা হচ্ছে
+                        if (change.type === 'added' && initialLoadComplete && !existingPost && !displayedPostIds.has(postData.id)) {
                              if(change.doc.metadata.hasPendingWrites === false) {
                                  postData.isFollowedUser = currentUserData?.following?.includes(postData.authorId);
                                  renderPosts([postData], true);
@@ -791,50 +789,33 @@
                 const postId = postCard.dataset.id;
                 const authorId = postCard.dataset.authorId;
                 
-                if (e.target.closest('.action-btn.comment')) {
-                    openCommentModal(postId);
-                }
-                else if (e.target.closest('.action-btn.like')) {
-                    handleLike(postId, authorId, e.target.closest('.action-btn.like'));
-                }
-                else if (e.target.closest('.author-clickable')) {
-                    showProfilePreview(authorId);
-                }
-                else if (e.target.closest('.follow-btn') || e.target.closest('.following-btn')) {
-                    handleFollow(authorId, e.target);
-                }
+                if (e.target.closest('.action-btn.comment')) openCommentModal(postId);
+                else if (e.target.closest('.action-btn.like')) handleLike(postId, authorId, e.target.closest('.action-btn.like'));
+                else if (e.target.closest('.author-clickable')) showProfilePreview(authorId);
+                else if (e.target.closest('.follow-btn') || e.target.closest('.following-btn')) handleFollow(authorId, e.target);
                 else if (e.target.closest('.action-btn.share')) {
                     const postText = postCard.querySelector('.post-content p')?.innerText || "Growfy থেকে একটি পোস্ট";
-                    if(navigator.share){
-                        navigator.share({ title: 'Growfy Post', text: postText, url: window.location.href }).catch(err => console.error("[v0] Share failed:", err));
-                    } else {
-                        navigator.clipboard.writeText(window.location.href).then(() => alert('পোস্ট লিংক কপি করা হয়েছে!')).catch(() => alert('দুঃখিত, কপি করা সম্ভব হয়নি।'));
-                    }
+                    if(navigator.share) navigator.share({ title: 'Growfy Post', text: postText, url: window.location.href }).catch(err => console.error("[v0] Share failed:", err));
+                    else navigator.clipboard.writeText(window.location.href).then(() => alert('পোস্ট লিংক কপি করা হয়েছে!')).catch(() => alert('দুঃখিত, কপি করা সম্ভব হয়নি।'));
                 }
             }
             
             if (e.target.closest('#previewFollowBtn')) {
                 e.preventDefault();
-                if (currentPreviewUserId) {
-                    handleFollow(currentPreviewUserId, e.target.closest('#previewFollowBtn'));
-                }
+                if (currentPreviewUserId) handleFollow(currentPreviewUserId, e.target.closest('#previewFollowBtn'));
             }
             
             if (e.target.closest('#previewViewBtn')) {
                 e.preventDefault();
-                if (currentPreviewUserId) {
-                    window.location.href = `profile.html?userId=${currentPreviewUserId}`;
-                }
+                if (currentPreviewUserId) window.location.href = `profile.html?userId=${currentPreviewUserId}`;
             }
             
             if (e.target.closest('.close-modal') || e.target.classList.contains('modal-overlay')) {
                 e.target.closest('.modal-overlay').classList.remove('active');
-                currentPreviewUserId = null; // Reset preview user ID
+                currentPreviewUserId = null;
             }
 
-            if (e.target.closest('#postCommentBtn')) {
-                postComment();
-            }
+            if (e.target.closest('#postCommentBtn')) postComment();
         });
 
         let lastScrollTop = 0;
@@ -854,7 +835,7 @@
                     bottomNav.classList.remove('hidden');
                 }
                 lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-            }, 10); // Debounce scroll events for better performance
+            }, 10);
         });
     </script>
 </body>
