@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - আমার অর্ডারসমূহ</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 20px; 
+        }
+        
+        /* --- Header --- */
+        .main-header { 
+            position: fixed; z-index: 1000; top: 0; left: 0; right: 0;
+            background: var(--card-bg-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .header-title { font-size: 18px; font-weight: 700; }
+        .header-icon a { 
+            font-size: 20px; color: var(--text-color); 
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none; 
+        }
+        
+        .main-content { max-width: 500px; margin: 0 auto; padding: 15px; animation: fadeIn 0.4s; }
+
+        .order-toggle { display: flex; background-color: var(--border-color); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+        .order-toggle button { flex: 1; padding: 9px; border: none; background-color: transparent; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; }
+        .order-toggle button.active { background-color: var(--card-bg-color); color: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        
+        .order-card-link { text-decoration: none; color: inherit; }
+        .order-card {
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+            padding: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .trade-partner-info { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+        .name { font-weight: 600; }
+        .order-type-badge { padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 700; color: var(--white-color); }
+        .order-type-badge.buy { background-color: var(--success-color); }
+        .order-type-badge.sell { background-color: var(--danger-color); }
+
+        .order-body { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .detail-item .label { font-size: 12px; color: var(--subtle-text-color); }
+        .detail-item .value { font-weight: 600; font-size: 14px; }
+        
+        .order-footer { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .status-badge { padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 600; }
+        .status-badge.pending { background-color: #fff8e1; color: var(--warning-color); }
+        .status-badge.completed { background-color: #e8f5e9; color: var(--success-color); }
+        .status-badge.cancelled { background-color: #fbe9e7; color: var(--danger-color); }
+        .order-date { font-size: 12px; color: var(--subtle-text-color); }
+        
+        .loading-msg { padding: 40px; text-align: center; color: var(--subtle-text-color); }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-icon"><a href="p2p_marketplace.html"><i class="fas fa-arrow-left"></i></a></div>
+        <h2 class="header-title">আমার অর্ডারসমূহ</h2>
+        <div class="header-icon"><a href="#"><i class="fas fa-search"></i></a></div>
+    </header>
+
+    <main class="main-content">
+        <div class="order-toggle">
+            <button id="ongoingBtn" class="active">চলমান</button>
+            <button id="completedBtn">সম্পন্ন</button>
+        </div>
+
+        <div id="ordersList">
+            <p class="loading-msg">লোড হচ্ছে...</p>
+        </div>
+    </main>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+            authDomain: "growfy-cd6ac.firebaseapp.com",
+            projectId: "growfy-cd6ac",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const ongoingBtn = document.getElementById('ongoingBtn');
+        const completedBtn = document.getElementById('completedBtn');
+        const ordersList = document.getElementById('ordersList');
+        let currentUserId = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                fetchOrders(['pending', 'payment_done']); // Fetch all ongoing statuses initially
+            } else { window.location.replace('auth.html'); }
+        });
+        
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            return new Date(timestamp.seconds * 1000).toLocaleString('bn-BD', {
+                day: 'numeric', month: 'short'
+            });
+        }
+        
+        function getStatusText(status) {
+            switch(status) {
+                case 'pending': return 'পেমেন্টের অপেক্ষায়';
+                case 'payment_done': return 'পয়েন্ট রিলিজের অপেক্ষায়';
+                case 'completed': return 'সম্পন্ন';
+                case 'cancelled': return 'বাতিল';
+                default: return status;
+            }
+        }
+
+        function renderOrders(orders) {
+            if (orders.length === 0) {
+                ordersList.innerHTML = '<p class="loading-msg">কোনো অর্ডার পাওয়া যায়নি।</p>';
+                return;
+            }
+            ordersList.innerHTML = '';
+            orders.forEach(order => {
+                const isBuyer = order.buyerId === currentUserId;
+                const tradePartner = isBuyer ? order.sellerInfo : order.buyerInfo;
+                const tradePartnerAvatar = tradePartner.avatar || `https://api.dicebear.com/9.x/initials/svg?seed=${tradePartner.name}`;
+
+                const orderCard = `
+                    <a href="trade_details.html?id=${order.id}" class="order-card-link">
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div class="trade-partner-info">
+                                    <img src="${tradePartnerAvatar}" class="avatar" alt="Avatar">
+                                    <span class="name">${tradePartner.name}</span>
+                                </div>
+                                <span class="order-type-badge ${isBuyer ? 'buy' : 'sell'}">${isBuyer ? 'ক্রয়' : 'বিক্রয়'}</span>
+                            </div>
+                            <div class="order-body">
+                                <div class="detail-item">
+                                    <p class="label">পরিমাণ</p>
+                                    <p class="value">${order.amountPoints.toLocaleString('bn-BD')} পয়েন্ট</p>
+                                </div>
+                                 <div class="detail-item">
+                                    <p class="label">মোট মূল্য</p>
+                                    <p class="value">৳${order.amountBDT.toLocaleString('bn-BD')}</p>
+                                </div>
+                            </div>
+                            <div class="order-footer">
+                                <span class="status-badge ${order.status}">${getStatusText(order.status)}</span>
+                                <span class="order-date">${formatDate(order.createdAt)}</span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+                ordersList.innerHTML += orderCard;
+            });
+        }
+
+        async function fetchOrders(statuses) {
+            if (!currentUserId) return;
+            ordersList.innerHTML = '<p class="loading-msg">লোড হচ্ছে...</p>';
+            
+            try {
+                // Firestore does not support OR queries on different fields.
+                // So, we fetch orders where user is buyer AND where user is seller, then merge.
+                const buyerQuery = db.collection('p2p_trades')
+                                   .where('buyerId', '==', currentUserId)
+                                   .where('status', 'in', statuses)
+                                   .get();
+                
+                const sellerQuery = db.collection('p2p_trades')
+                                    .where('sellerId', '==', currentUserId)
+                                    .where('status', 'in', statuses)
+                                    .get();
+                                    
+                const [buyerSnapshot, sellerSnapshot] = await Promise.all([buyerQuery, sellerQuery]);
+
+                const buyerOrders = buyerSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const sellerOrders = sellerSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const allOrders = [...buyerOrders, ...sellerOrders];
+                
+                // Sort by creation date, newest first
+                allOrders.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
+
+                renderOrders(allOrders);
+
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+                ordersList.innerHTML = '<p class="loading-msg">অর্ডার লোড করা সম্ভব হয়নি।</p>';
+            }
+        }
+
+        ongoingBtn.addEventListener('click', () => {
+            ongoingBtn.classList.add('active');
+            completedBtn.classList.remove('active');
+            fetchOrders(['pending', 'payment_done']);
+        });
+        
+        completedBtn.addEventListener('click', () => {
+            completedBtn.classList.add('active');
+            ongoingBtn.classList.remove('active');
+            fetchOrders(['completed', 'cancelled']);
+        });
+        
+    </script>
+</body>
+</html>

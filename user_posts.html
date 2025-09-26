@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - আমার পোস্টসমূহ</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --verified-color: #1d9bf0;
+            --monetized-color: #ff6b35;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --danger-color: #e74c3c;
+            --shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            --border-color: #e9ecef;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        /* হেডার এবং নেভিগেশন (আগের মতোই) */
+        .main-header, .bottom-nav { position: fixed; z-index: 1000; }
+        .main-header { top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .header-icons { display: flex; gap: 10px; }
+        .header-icon a { font-size: 18px; color: var(--subtle-text-color); background-color: #e4e6eb; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .bottom-nav { bottom: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center; height: 55px; border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        .nav-item-wrapper { flex: 1; } .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; } .nav-item i { font-size: 20px; } .nav-item span { font-size: 10px; margin-top: 3px; } .nav-item.active { color: var(--primary-color); }
+
+        .main-content { max-width: 500px; margin: 0 auto; padding: 10px; }
+        
+        /* *** নতুন: Creator Stats Card (শুধু মনিটাইজড ব্যবহারকারীদের জন্য) *** */
+        .creator-stats-card {
+            background: linear-gradient(135deg, var(--primary-color), #3b5998);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+        }
+        .stat-item .value { font-size: 18px; font-weight: 700; }
+        .stat-item .label { font-size: 12px; opacity: 0.9; }
+
+        /* *** নতুন: Create Post Card (index.html থেকে আনা) *** */
+        .create-post-card { background: var(--card-bg-color); border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; }
+        .create-post-card img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .create-post-card .post-input-wrapper { flex-grow: 1; cursor: pointer; color: var(--subtle-text-color); font-size: 16px; }
+
+        /* --- পোস্ট কার্ডের স্টাইল --- */
+        .post-card { background: var(--card-bg-color); border-radius: 12px; margin-bottom: 15px; box-shadow: var(--shadow); transition: all 0.4s ease; border: 2px solid transparent; }
+        /* *** নতুন: মনিটাইজড ব্যবহারকারীদের পোস্টের জন্য প্রিমিয়াম বর্ডার *** */
+        .monetized-creator-post {
+            border: 2px solid;
+            border-image-slice: 1;
+            border-image-source: linear-gradient(to right, var(--monetized-color), var(--primary-color));
+        }
+
+        .post-header { display: flex; align-items: center; padding: 12px 15px; gap: 10px; }
+        .post-header .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .post-user-info { flex-grow: 1; }
+        .user-name { font-weight: 700; font-size: 15px; }
+        .timestamp { font-size: 12px; color: var(--subtle-text-color); }
+        .post-actions-menu { position: relative; }
+        .more-options-btn { background: none; border: none; font-size: 18px; color: var(--subtle-text-color); cursor: pointer; padding: 5px; }
+        .actions-dropdown { display: none; position: absolute; right: 0; top: 30px; background-color: var(--card-bg-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; overflow: hidden; width: 120px; }
+        .actions-dropdown.show { display: block; }
+        .dropdown-item { padding: 10px 15px; font-size: 14px; border: none; width: 100%; text-align: left; background: none; cursor: pointer; }
+        .dropdown-item.edit { color: var(--primary-color); }
+        .dropdown-item.delete { color: var(--danger-color); }
+        .dropdown-item:hover { background-color: var(--background-color); }
+        .dropdown-item i { margin-right: 8px; }
+
+        .post-content { padding: 0 15px 12px 15px; }
+        .post-content p { font-size: 15px; line-height: 1.6; }
+        .post-image { width: 100%; margin-top: 10px; border-radius: 8px; }
+        .post-stats { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-top: 1px solid var(--border-color); }
+        .earning-badge { background-color: #e8f5e9; color: #4CAF50; border-radius: 16px; padding: 6px 12px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .post-stats .views { color: var(--subtle-text-color); font-size: 14px; }
+        .loading-indicator, .empty-state { text-align: center; padding: 50px 20px; color: var(--subtle-text-color); }
+        .empty-state i { font-size: 40px; margin-bottom: 15px; }
+        
+        /* *** নতুন: Edit Post Modal *** */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-panel { background: var(--card-bg-color); border-radius: 20px; width: 95%; max-width: 400px; padding: 25px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; }
+        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; }
+        .modal-body textarea { width: 100%; min-height: 120px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; resize: vertical; }
+        .modal-footer { margin-top: 20px; }
+        .modal-footer button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; color: white; background: var(--primary-color); cursor: pointer; }
+        .modal-footer button:disabled { background: #bdc3c7; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <span class="logo-text">Growfy</span>
+        <div class="header-icons">
+            <div class="header-icon"><a href="search.html"><i class="fas fa-search"></i></a></div>
+            <div class="header-icon"><a href="notifications.html"><i class="fas fa-bell"></i></a></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- NEW: Creator Stats Card (JS will show/hide) -->
+        <div class="creator-stats-card" id="creatorStatsCard" style="display: none;">
+            <div class="stat-item"><p class="value" id="statsTotalPosts">0</p><p class="label">মোট পোস্ট</p></div>
+            <div class="stat-item"><p class="value" id="statsTotalViews">0</p><p class="label">মোট ভিউ</p></div>
+            <div class="stat-item"><p class="value" id="statsTotalEarnings">0</p><p class="label">মোট আয়</p></div>
+        </div>
+        
+        <!-- NEW: Create Post Card -->
+        <div class="create-post-card" onclick="window.location.href='create_post.html'">
+            <img src="https://api.dicebear.com/9.x/initials/svg?seed=?" id="createPostPic" alt="Profile">
+            <div class="post-input-wrapper">কিছু লিখুন...</div>
+        </div>
+
+        <div id="myPostsContainer"></div>
+        <div id="loadingIndicator" class="loading-indicator"><p>লোড হচ্ছে...</p></div>
+    </main>
+    
+    <div class="bottom-nav">
+        <!-- নেভিগেশন (আগের মতোই) -->
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item active"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+
+    <!-- NEW: Edit Post Modal -->
+    <div class="modal-overlay" id="editPostModal">
+        <div class="modal-panel">
+            <div class="modal-header"><h3>পোস্ট এডিট করুন</h3><button class="close-modal">&times;</button></div>
+            <div class="modal-body"><textarea id="editPostTextarea"></textarea></div>
+            <div class="modal-footer"><button id="savePostChangesBtn">পরিবর্তন সেভ করুন</button></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          projectId: "growfy-cd6ac",
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const postsContainer = document.getElementById('myPostsContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const editPostModal = document.getElementById('editPostModal');
+
+        function timeAgo(timestamp) {
+            if (!timestamp || !timestamp.toDate) return 'কিছুক্ষণ আগে';
+            const now = new Date();
+            const seconds = Math.floor((now - timestamp.toDate()) / 1000);
+            if (seconds < 60) return "এইমাত্র";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} মিনিট আগে`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} ঘন্টা আগে`;
+            const days = Math.floor(hours / 24);
+            return `${days} দিন আগে`;
+        }
+
+        const renderMyPosts = (posts, userData) => {
+            if (posts.length === 0) {
+                postsContainer.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>আপনি এখনো কোনো পোস্ট করেননি।</p></div>`;
+                return;
+            }
+            
+            let postsHTML = '';
+            const isMonetized = userData.isMonetized || false;
+            
+            posts.forEach(post => {
+                const authorAvatar = userData.profileImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${userData.fullName.charAt(0)}`;
+                const cardClass = isMonetized ? 'post-card monetized-creator-post' : 'post-card';
+
+                postsHTML += `
+                    <div class="${cardClass}" data-id="${post.id}">
+                        <div class="post-header">
+                            <img class="avatar" src="${authorAvatar}" alt="Avatar">
+                            <div class="post-user-info">
+                                <p class="user-name">${userData.fullName}</p>
+                                <span class="timestamp">${timeAgo(post.createdAt)}</span>
+                            </div>
+                            <div class="post-actions-menu">
+                                <button class="more-options-btn"><i class="fas fa-ellipsis-h"></i></button>
+                                <div class="actions-dropdown">
+                                    <button class="dropdown-item edit" data-post-id="${post.id}"><i class="fas fa-edit"></i> এডিট</button>
+                                    <button class="dropdown-item delete" data-post-id="${post.id}"><i class="fas fa-trash-alt"></i> ডিলিট</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content"><p>${post.text.replace(/\n/g, '<br>')}</p>
+                            ${post.imageUrl ? `<img class="post-image" src="${post.imageUrl}" alt="Post Image">` : ''}
+                        </div>
+                        <div class="post-stats">
+                            <div class="earning-badge"><i class="fas fa-coins"></i><span>${post.points || 0} Points Earning</span></div>
+                            <div class="views"><i class="fas fa-eye"></i> ${post.views || 0}</div>
+                        </div>
+                    </div>`;
+            });
+            postsContainer.innerHTML = postsHTML;
+        };
+
+        const fetchMyDataAndPosts = async (userId) => {
+            loadingIndicator.style.display = 'block';
+            postsContainer.innerHTML = '';
+            
+            try {
+                // *** নতুন: লোকাল স্টোরেজ থেকে ডেটা দেখানোর চেষ্টা ***
+                const cachedData = localStorage.getItem(`myPostsCache_${userId}`);
+                if(cachedData) {
+                    const { posts, userData } = JSON.parse(cachedData);
+                    console.log("ক্যাশ থেকে পোস্ট লোড হচ্ছে...");
+                    renderMyPosts(posts, userData);
+                    document.getElementById('createPostPic').src = userData.profileImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${userData.fullName.charAt(0)}`;
+                }
+
+                const userDoc = await db.collection('users').doc(userId).get();
+                if (!userDoc.exists) throw new Error("User not found!");
+                const userData = userDoc.data();
+                
+                // আপডেট করা create post ছবি
+                document.getElementById('createPostPic').src = userData.profileImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${userData.fullName.charAt(0)}`;
+
+                const postsQuery = db.collection('posts').where('authorId', '==', userId).orderBy('createdAt', 'desc');
+                const snapshot = await postsQuery.get();
+                const myPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // *** নতুন: লোকাল স্টোরেজে ডেটা সেভ করা ***
+                localStorage.setItem(`myPostsCache_${userId}`, JSON.stringify({ posts: myPosts, userData: userData }));
+                
+                renderMyPosts(myPosts, userData);
+
+                // *** নতুন: মনিটাইজড ব্যবহারকারীর জন্য ড্যাশবোর্ড দেখানো ***
+                if (userData.isMonetized) {
+                    const statsCard = document.getElementById('creatorStatsCard');
+                    const totalViews = myPosts.reduce((sum, post) => sum + (post.views || 0), 0);
+                    const totalEarnings = myPosts.reduce((sum, post) => sum + (post.points || 0), 0);
+                    
+                    document.getElementById('statsTotalPosts').textContent = myPosts.length;
+                    document.getElementById('statsTotalViews').textContent = totalViews.toLocaleString('bn-BD');
+                    document.getElementById('statsTotalEarnings').textContent = totalEarnings.toLocaleString('bn-BD');
+                    statsCard.style.display = 'flex';
+                }
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                postsContainer.innerHTML = `<div class="empty-state"><p>দুঃখিত, তথ্য লোড করা সম্ভব হয়নি।</p></div>`;
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        };
+
+        const handleDeletePost = async (postId, userId) => {
+            if (confirm("আপনি কি নিশ্চিতভাবে এই পোস্টটি ডিলিট করতে চান?")) {
+                try {
+                    await db.collection('posts').doc(postId).delete();
+                    alert("পোস্ট সফলভাবে ডিলিট হয়েছে।");
+                    localStorage.removeItem(`myPostsCache_${userId}`); // ক্যাশ পরিষ্কার করুন
+                    fetchMyDataAndPosts(userId); // পেজ রিফ্রেশ করুন
+                } catch (error) {
+                    alert("পোস্টটি ডিলিট করা সম্ভব হয়নি।");
+                }
+            }
+        };
+        
+        // *** নতুন: পোস্ট এডিট করার ফাংশন ***
+        const handleEditPost = (postId) => {
+            const postCard = document.querySelector(`.post-card[data-id="${postId}"]`);
+            const postText = postCard.querySelector('.post-content p').innerText;
+            
+            document.getElementById('editPostTextarea').value = postText;
+            document.getElementById('savePostChangesBtn').dataset.postId = postId;
+            editPostModal.classList.add('active');
+        };
+        
+        // *** নতুন: পরিবর্তন সেভ করার ফাংশন ***
+        const savePostChanges = async (userId) => {
+            const saveBtn = document.getElementById('savePostChangesBtn');
+            const postId = saveBtn.dataset.postId;
+            const newText = document.getElementById('editPostTextarea').value.trim();
+
+            if (!newText) {
+                alert("পোস্ট خالی হতে পারে না।");
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'সেভ হচ্ছে...';
+
+            try {
+                await db.collection('posts').doc(postId).update({ text: newText });
+                alert("পোস্ট সফলভাবে আপডেট হয়েছে!");
+                editPostModal.classList.remove('active');
+                localStorage.removeItem(`myPostsCache_${userId}`); // ক্যাশ পরিষ্কার করুন
+                fetchMyDataAndPosts(userId); // পেজ রিফ্রেশ করুন
+            } catch (error) {
+                alert("আপডেট করা সম্ভব হয়নি।");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'পরিবর্তন সেভ করুন';
+            }
+        };
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchMyDataAndPosts(user.uid);
+                // মডাল এবং অন্যান্য ইভেন্ট লিসেনার সেটআপ
+                setupEventListeners(user.uid);
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+
+        function setupEventListeners(userId) {
+            postsContainer.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.closest('.more-options-btn')) {
+                    const dropdown = target.closest('.post-actions-menu').querySelector('.actions-dropdown');
+                    document.querySelectorAll('.actions-dropdown.show').forEach(d => d !== dropdown && d.classList.remove('show'));
+                    dropdown.classList.toggle('show');
+                } 
+                else if (target.closest('.delete')) {
+                    handleDeletePost(target.closest('.delete').dataset.postId, userId);
+                }
+                else if (target.closest('.edit')) { // নতুন এডিট বাটন
+                    handleEditPost(target.closest('.edit').dataset.postId);
+                }
+                else if (!target.closest('.post-actions-menu')) {
+                    document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+                }
+            });
+            
+            editPostModal.querySelector('.close-modal').addEventListener('click', () => editPostModal.classList.remove('active'));
+            document.getElementById('savePostChangesBtn').addEventListener('click', () => savePostChanges(userId));
+        }
+    </script>
+</body>
+</html>

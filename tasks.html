@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - টাস্ক সেন্টার</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- বিজ্ঞাপনের SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='9885140' data-sdk='show_9885140'></script>
+
+    <style>
+        :root {
+            --primary-color: #1877f2; --success-color: #27ae60; --danger-color: #e74c3c;
+            --warning-color: #f39c12; --background-color: #f0f2f5; --card-bg-color: #ffffff;
+            --text-color: #050505; --subtle-text-color: #65676b; --white-color: #ffffff;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.08); --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(24, 119, 242, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 10px 15px rgba(24, 119, 242, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(24, 119, 242, 0); }
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; background-color: var(--background-color); 
+            color: var(--text-color); padding-top: 75px; padding-bottom: 75px; 
+        }
+        
+        .main-header, .bottom-nav { position: fixed; z-index: 1000; }
+        .main-header { top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
+        .bottom-nav { bottom: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center; height: 55px; border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        .nav-item-wrapper { flex: 1; } .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; } .nav-item i { font-size: 20px; } .nav-item span { font-size: 10px; margin-top: 3px; } .nav-item.active { color: var(--primary-color); }
+
+        .task-filters { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { background-color: var(--card-bg-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--subtle-text-color); transition: all 0.2s; white-space: nowrap; }
+        .filter-btn.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
+
+        .task-card { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px; background-color: var(--card-bg-color); padding: 12px 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: var(--shadow); }
+        .task-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: #e7f3ff; color: var(--primary-color); font-size: 18px; }
+        .task-info .title { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+        .task-info .reward { font-size: 13px; font-weight: 700; color: var(--success-color); }
+        .sponsored-tag { font-size: 10px; background-color: var(--warning-color); color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin-left: 5px; }
+        .task-action .task-btn, .task-action .claim-btn { border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 14px; color: var(--white-color); cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+        .task-action .task-btn { background-color: var(--primary-color); }
+        .task-action .claim-btn { background-color: var(--success-color); }
+        .task-btn:disabled, .claim-btn:disabled { background-color: var(--subtle-text-color); cursor: not-allowed; }
+
+        .fab { position: fixed; bottom: 85px; right: 25px; width: 55px; height: 55px; background-color: var(--primary-color); color: var(--white-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4); text-decoration: none; z-index: 1001; cursor: pointer; animation: pulse 2.5s infinite; }
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-panel { background: var(--card-bg-color); border-radius: 20px; width: 95%; max-width: 400px; padding: 25px; animation: fadeIn 0.3s; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; }
+        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-input, .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; font-family: inherit; }
+        .cost-calculation { background: #f0f5ff; border: 1px dashed var(--primary-color); padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; }
+        .cost-calculation p { margin: 5px 0; } #totalCost { font-weight: 700; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <span class="logo-text">Growfy</span>
+    </header>
+
+    <main class="main-content">
+        <div class="task-filters">
+            <button class="filter-btn active" data-filter="all">সকল টাস্ক</button>
+            <button class="filter-btn" data-filter="normal">সাধারণ টাস্ক</button>
+            <button class="filter-btn" data-filter="sponsored">স্পন্সরড টাস্ক</button>
+            <a href="my_created_tasks.html" class="filter-btn" style="text-decoration:none;">আমার টাস্ক</a>
+        </div>
+
+        <div id="taskListContainer">
+            <p style="text-align:center; padding: 20px;">টাস্ক লোড হচ্ছে...</p>
+        </div>
+    </main>
+
+    <div class="fab" id="createMicrojobBtn"><i class="fas fa-plus"></i></div>
+    
+    <div class="modal-overlay" id="microjobModal">
+         <div class="modal-panel">
+            <div class="modal-header"><h3>আপনার টাস্ক তৈরি করুন</h3><button class="close-modal">&times;</button></div>
+            <form id="microjobForm">
+                <div class="form-group"><input type="text" id="taskTitle" class="form-input" placeholder="টাস্কের টাইটেল" required></div>
+                <div class="form-group"><textarea id="taskDescription" class="form-textarea" placeholder="কী করতে হবে তার বিবরণ" rows="3"></textarea></div>
+                <div class="form-group"><input type="url" id="taskLink" class="form-input" placeholder="প্রয়োজনীয় লিঙ্ক (ইউটিউব, ফেসবুক, ইত্যাদি)" required></div>
+                <div class="form-group"><input type="number" id="taskPoints" class="form-input" placeholder="প্রতি ব্যবহারকারীকে কত পয়েন্ট দিবেন?" required min="10" step="1"></div>
+                <div class="form-group"><input type="number" id="taskQuantity" class="form-input" placeholder="কতজন ব্যবহারকারী টাস্কটি করবে?" required min="5"></div>
+                <div class="cost-calculation">
+                    <p>মোট খরচ: <span id="baseCost">0</span> PTS</p>
+                    <p>কোম্পানি ফি (১০%): +<span id="companyFee">0</span> PTS</p>
+                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 8px 0;">
+                    <p>সর্বমোট খরচ হবে: <strong id="totalCost">0</strong> PTS</p>
+                </div>
+                <button type="submit" class="task-btn" style="width: 100%; margin-top: 20px; padding: 12px;">টাস্ক পোস্ট করুন</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item active"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw", authDomain: "growfy-cd6ac.firebaseapp.com", projectId: "growfy-cd6ac" };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const taskListContainer = document.getElementById('taskListContainer');
+        const completedTasks = new Set(JSON.parse(localStorage.getItem('completedTasks')) || []);
+        let allTasks = [];
+
+        // *** ধাপ ১: ম্যানুয়াল টাস্কগুলো এখানে স্থায়ীভাবে যোগ করা হলো ***
+        const manualTasks = [
+            // টেলিগ্রাম টাস্ক
+            { id: 'manual_tg', title: 'আমাদের টেলিগ্রাম চ্যানেলে যোগ দিন', reward: 50, type: 'sponsored', taskType: 'link', link: 'https://t.me/Earning_with_Nahid', timer: 15, icon: 'fa-paper-plane' },
+            // বিজ্ঞাপন দেখার টাস্ক (আপনার ডেমো ফাইলের মতো)
+            ...Array.from({ length: 15 }, (_, i) => ({
+                id: `ad_task_${i + 1}`,
+                title: `বিজ্ঞাপন দেখুন #${i + 1}`,
+                reward: 0.5, // পয়েন্ট এখানে সেট করা হলো
+                type: 'normal',
+                taskType: 'ad',
+                icon: 'fa-play-circle'
+            }))
+        ];
+
+        async function loadAllTasks() {
+            try {
+                // ধাপ ২: ডাটাবেজ থেকে ডাইনামিক টাস্কগুলো লোড করা
+                const adminTasksSnap = await db.collection('admin_tasks').where('status', '==', 'active').get();
+                const adminTasks = adminTasksSnap.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'sponsored' }));
+
+                const microjobsSnap = await db.collection('microjobs').where('status', '==', 'active').get();
+                const microjobs = microjobsSnap.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'sponsored' }));
+                
+                // ধাপ ৩: ম্যানুয়াল এবং ডাইনামিক টাস্কগুলো একসাথে মেশানো
+                allTasks = [...manualTasks, ...adminTasks, ...microjobs];
+                renderTasks('all');
+
+            } catch (error) {
+                console.error("Error loading tasks: ", error);
+                // যদি ডাটাবেজ থেকে লোড না হয়, শুধু ম্যানুয়াল টাস্কগুলো দেখান
+                allTasks = [...manualTasks];
+                renderTasks('all');
+                taskListContainer.insertAdjacentHTML('afterbegin', '<p style="text-align:center; color:red; margin-bottom:10px;">কিছু টাস্ক লোড করা সম্ভব হয়নি।</p>');
+            }
+        }
+
+        function renderTasks(filter) {
+            taskListContainer.innerHTML = '';
+            const filteredTasks = allTasks.filter(task => filter === 'all' || task.type === filter);
+
+            if (filteredTasks.length === 0) {
+                taskListContainer.innerHTML = '<p style="text-align:center;">এই ক্যাটাগরিতে কোনো টাস্ক নেই।</p>';
+                return;
+            }
+
+            filteredTasks.forEach(task => {
+                const isSponsored = task.type === 'sponsored';
+                const sponsoredTag = isSponsored ? `<span class="sponsored-tag">স্পন্সরড</span>` : '';
+                const isCompleted = completedTasks.has(task.id);
+                const buttonText = isCompleted ? 'সম্পন্ন' : (task.taskType === 'link' ? 'ভিজিট করুন' : 'শুরু করুন');
+
+                const taskCardHTML = `
+                    <div class="task-card" data-task-id="${task.id}" data-task-type="${task.taskType}" data-link="${task.link}" data-timer="${task.timer}" data-reward="${task.reward}">
+                        <div class="task-icon"><i class="fas ${task.icon || 'fa-tasks'}"></i></div>
+                        <div class="task-info">
+                            <p class="title">${task.title} ${sponsoredTag}</p>
+                            <p class="reward">+${task.reward} PTS</p>
+                        </div>
+                        <div class="task-action">
+                             <button class="task-btn" ${isCompleted ? 'disabled' : ''}>${buttonText}</button>
+                        </div>
+                    </div>
+                `;
+                taskListContainer.insertAdjacentHTML('beforeend', taskCardHTML);
+            });
+            checkRunningTasks();
+        }
+        
+        // --- টাস্ক সম্পন্ন করার লজিক ---
+        async function showAdAfterAction() {
+            if (typeof show_9885140 !== 'function') { alert("Ad SDK not loaded!"); return; }
+            try { await show_9885140(); } catch (e) { console.error("Ad error:", e); }
+        }
+
+        taskListContainer.addEventListener('click', async (e) => {
+            const button = e.target.closest('.task-btn');
+            if (!button || button.disabled) return;
+
+            const card = button.closest('.task-card');
+            const { taskId, taskType, link, timer, reward } = card.dataset;
+            const user = auth.currentUser;
+            if (!user) return;
+
+            button.disabled = true;
+            button.textContent = 'লোড হচ্ছে...';
+
+            if (taskType === 'ad') {
+                await showAdAfterAction();
+                alert(`অভিনন্দন! আপনি ${reward} পয়েন্ট পেয়েছেন।`);
+                await db.collection('users').doc(user.uid).update({ totalPoints: firebase.firestore.FieldValue.increment(parseFloat(reward)) });
+                button.textContent = 'সম্পন্ন';
+                completedTasks.add(taskId);
+                localStorage.setItem('completedTasks', JSON.stringify([...completedTasks]));
+            } else if (taskType === 'link') {
+                localStorage.setItem('runningTask', JSON.stringify({ id: taskId, startTime: Date.now(), duration: timer, reward: reward }));
+                window.open(link, '_blank');
+                // বাটন টেক্সট টাইমারের জন্য checkRunningTasks() ফাংশন দ্বারা আপডেট হবে
+            }
+        });
+        
+        function checkRunningTasks() {
+            const runningTask = JSON.parse(localStorage.getItem('runningTask'));
+            if (!runningTask) return;
+
+            const card = document.querySelector(`.task-card[data-task-id="${runningTask.id}"]`);
+            if (!card || completedTasks.has(runningTask.id)) {
+                localStorage.removeItem('runningTask'); return;
+            }
+            
+            const actionDiv = card.querySelector('.task-action');
+            const elapsedTime = (Date.now() - runningTask.startTime) / 1000;
+            const remainingTime = runningTask.duration - elapsedTime;
+
+            if (remainingTime <= 0) {
+                actionDiv.innerHTML = `<button class="claim-btn" onclick="claimReward('${runningTask.id}', ${runningTask.reward})">ক্লেইম করুন</button>`;
+            } else {
+                actionDiv.innerHTML = `<button class="task-btn" disabled>${Math.ceil(remainingTime)}s অপেক্ষা...</button>`;
+            }
+        }
+        
+        async function claimReward(taskId, reward) {
+            const user = auth.currentUser;
+            if(!user) return;
+            
+            const claimBtn = document.querySelector(`.task-card[data-task-id="${taskId}"] .claim-btn`);
+            if(claimBtn) {
+                claimBtn.disabled = true;
+                claimBtn.textContent = 'লোড হচ্ছে...';
+            }
+
+            await showAdAfterAction();
+            alert(`অভিনন্দন! আপনি ${reward} পয়েন্ট পেয়েছেন।`);
+            
+            await db.collection('users').doc(user.uid).update({ totalPoints: firebase.firestore.FieldValue.increment(parseFloat(reward)) });
+
+            completedTasks.add(taskId);
+            localStorage.setItem('completedTasks', JSON.stringify([...completedTasks]));
+            localStorage.removeItem('runningTask');
+            
+            const card = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+            if(card) card.querySelector('.task-action').innerHTML = `<button class="task-btn" disabled>সম্পন্ন</button>`;
+        }
+        
+        // --- ফিল্টার ও Modal লজিক ---
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(e.target.tagName === 'BUTTON') {
+                    document.querySelector('.filter-btn.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    renderTasks(e.target.dataset.filter);
+                }
+            });
+        });
+        
+        // --- Microjob Creation Logic ---
+        const fab = document.getElementById('createMicrojobBtn');
+        const modal = document.getElementById('microjobModal');
+        const form = document.getElementById('microjobForm');
+        
+        fab.addEventListener('click', () => modal.classList.add('active'));
+        modal.querySelector('.close-modal').addEventListener('click', () => modal.classList.remove('active'));
+
+        form.addEventListener('input', () => { /* আগের মতোই */ });
+        form.addEventListener('submit', (e) => {
+             e.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true; submitBtn.textContent = 'প্রসেসিং...';
+            const pointsPerUser = parseFloat(form.taskPoints.value), quantity = parseInt(form.taskQuantity.value, 10);
+            const totalCost = (pointsPerUser * quantity) * 1.10;
+            const currentUserRef = db.collection('users').doc(auth.currentUser.uid);
+            db.runTransaction(t => t.get(currentUserRef).then(doc => {
+                if (!doc.exists || (doc.data().totalPoints || 0) < totalCost) throw "অপর্যাপ্ত পয়েন্ট!";
+                t.update(currentUserRef, { totalPoints: firebase.firestore.FieldValue.increment(-totalCost) });
+                t.set(db.collection('microjobs').doc(), {
+                    title: form.taskTitle.value, description: form.taskDescription.value, link: form.taskLink.value,
+                    reward: pointsPerUser, quantity: quantity, completedCount: 0, creatorId: auth.currentUser.uid,
+                    creatorName: doc.data().fullName, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'active', taskType: 'link', icon: 'fa-bullhorn'
+                });
+            })).then(() => {
+                alert("আপনার টাস্ক সফলভাবে পোস্ট করা হয়েছে!"); modal.classList.remove('active'); form.reset(); loadAllTasks();
+            }).catch(err => alert("ত্রুটি: " + err)).finally(() => {
+                submitBtn.disabled = false; submitBtn.textContent = 'টাস্ক পোস্ট করুন';
+            });
+        });
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadAllTasks();
+                setInterval(checkRunningTasks, 1000);
+            } else { window.location.replace('auth.html'); }
+        });
+    </script>
+</body>
+</html>

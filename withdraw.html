@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - উইথড্র</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 25px; 
+        }
+        
+        /* Header (কোনো পরিবর্তন নেই) */
+        .main-header { position: fixed; z-index: 1000; top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary-color); }
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
+        
+        /* <<< নতুন স্টাইল শুরু: উইথড্র পেজের জন্য >>> */
+        .withdraw-container { padding: 10px 0; }
+        .balance-display-card {
+            background: var(--card-bg-color);
+            padding: 15px 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        .balance-display-card p { font-size: 14px; color: var(--subtle-text-color); }
+        .balance-display-card span { font-size: 24px; font-weight: 700; color: var(--text-color); font-family: 'Oswald', sans-serif; }
+
+        .step-card { background: var(--card-bg-color); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 12px; font-size: 16px; color: #333; }
+
+        .amount-selection { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .preset-amount { padding: 12px 5px; border: 1px solid var(--border-color); border-radius: 10px; background: #fdfdfd; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 15px; font-weight: 600; }
+        .preset-amount.selected { background: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); transform: scale(1.05); box-shadow: 0 4px 10px rgba(24, 119, 242, 0.3); }
+        
+        .custom-amount-input { width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .custom-amount-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.15); outline: none; }
+        
+        .payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .method-option { border: 2px solid var(--border-color); border-radius: 12px; padding: 15px 5px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fdfdfd; }
+        .method-option img { height: 28px; margin-bottom: 8px; }
+        .method-option span { font-size: 13px; font-weight: 600; display: block; }
+        .method-option.selected { border-color: var(--primary-color); background-color: #f0f5ff; }
+
+        .account-input { width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 16px; }
+        .account-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.15); outline: none; }
+
+        .error-message { color: var(--danger-color); font-size: 13px; margin-top: 8px; display: none; }
+        
+        .info-box { background-color: #eef5ff; border: 1px solid #a8c8f8; border-radius: 12px; padding: 15px; font-size: 13px; line-height: 1.6; color: #335d9d; margin-bottom: 20px; }
+        .info-box ul { list-style-type: none; padding-left: 0; }
+        .info-box ul li { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .info-box ul li i { color: var(--primary-color); }
+        
+        .confirm-button { width: 100%; background: linear-gradient(45deg, var(--primary-color), #4c8cff); color: var(--white-color); border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); }
+        .confirm-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4); }
+        .confirm-button:disabled { background: #a0c7f8; cursor: not-allowed; box-shadow: none; transform: none; }
+        
+        /* অপর্যাপ্ত ব্যালেন্স মেসেজ */
+        .insufficient-balance-message { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 16px; padding: 25px; font-size: 15px; text-align: center; line-height: 1.7; }
+
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); z-index: 9999; display: none; justify-content: center; align-items: center; }
+        .loading-overlay .fas { font-size: 40px; color: var(--primary-color); animation: spin 1s linear infinite; }
+        
+        /* <<< নতুন স্টাইল: সাকসেস Modal এর জন্য >>> */
+        .success-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .success-modal-overlay.active { display: flex; opacity: 1; }
+        .success-modal-panel { background: var(--card-bg-color); border-radius: 16px; width: 90%; max-width: 340px; padding: 30px 25px; text-align: center; animation: fadeIn 0.3s; }
+        .success-modal-panel .icon { font-size: 50px; color: var(--success-color); width: 80px; height: 80px; border-radius: 50%; background: #eaf7ee; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; }
+        .success-modal-panel .title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+        .success-modal-panel .message { font-size: 14px; color: var(--subtle-text-color); margin-bottom: 25px; line-height: 1.5; }
+        .success-modal-panel .action-btn { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <a href="wallet.html" style="color: var(--text-color); font-size: 20px;"><i class="fas fa-arrow-left"></i></a>
+        <span class="logo-text">উইথড্র</span>
+        <span style="width: 20px;"></span> </header>
+
+    <main class="main-content">
+        <div class="withdraw-container">
+            <div id="mainForm">
+                <div class="balance-display-card">
+                    <p>আপনার বর্তমান ব্যালেন্স</p>
+                    <span id="userBalance">লোড হচ্ছে...</span>
+                </div>
+
+                <div class="step-card">
+                    <div class="form-group">
+                        <label>১. পরিমাণ নির্বাচন করুন (পয়েন্ট)</label>
+                        <div class="amount-selection">
+                            <button class="preset-amount" data-amount="500">৫০০</button>
+                            <button class="preset-amount" data-amount="1000">১০০০</button>
+                            <button class="preset-amount" data-amount="2000">২০০০</button>
+                        </div>
+                        <input type="number" id="amountInput" class="custom-amount-input" placeholder="আপনার পরিমাণ লিখুন (২০০-১০০০০)">
+                        <p id="amountError" class="error-message">অনুগ্রহ করে সঠিক পরিমাণ লিখুন।</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="form-group">
+                        <label>২. পেমেন্ট মেথড</label>
+                        <div class="payment-methods" id="paymentMethods">
+                            <div class="method-option" data-method="bKash"><img src="https://i.ibb.co/2stQz8b/bkash.png" alt="bKash"><span>বিকাশ</span></div>
+                            <div class="method-option" data-method="Nagad"><img src="https://i.ibb.co/qY0yS98/nagad.png" alt="Nagad"><span>নগদ</span></div>
+                            <div class="method-option" data-method="Binance"><img src="https://i.ibb.co/q0t0SGM/binance.png" alt="Binance"><span>বাইনান্স</span></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>৩. অ্যাকাউন্ট তথ্য</label>
+                        <input type="text" id="accountInput" class="account-input" placeholder="আগে পেমেন্ট মেথড সিলেক্ট করুন">
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <ul>
+                        <li><i class="fas fa-info-circle"></i>উইথড্র অনুরোধ ২৪ ঘন্টার মধ্যে সম্পন্ন করা হয়।</li>
+                        <li><i class="fas fa-check-circle"></i>আপনার অ্যাকাউন্ট তথ্য সঠিক কিনা তা নিশ্চিত করুন।</li>
+                    </ul>
+                </div>
+
+                <button class="confirm-button" id="confirmBtn" disabled>কনফার্ম করুন</button>
+            </div>
+
+            <div id="insufficientBalanceMessage" style="display: none;">
+                <div class="insufficient-balance-message">
+                    <p>দুঃখিত, উইথড্র করার জন্য আপনার অ্যাকাউন্টে ন্যূনতম <strong>২,০০০</strong> পয়েন্ট থাকতে হবে। আরও পয়েন্ট অর্জন করতে অ্যাপ ব্যবহার করুন।</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading-overlay" id="loadingOverlay"><i class="fas fa-spinner"></i></div>
+
+    <div class="success-modal-overlay" id="successModal">
+        <div class="success-modal-panel">
+            <div class="icon"><i class="fas fa-check"></i></div>
+            <h4 class="title">অনুরোধ সফল হয়েছে!</h4>
+            <p class="message" id="successMessage"></p>
+            <button class="action-btn" id="modalActionBtn">ওয়ালেটে ফিরে যান</button>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          projectId: "growfy-cd6ac",
+          // আপনার বাকি কনফিগারেশন...
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const MIN_BALANCE_REQUIRED = 2000;
+        const MIN_WITHDRAW_AMOUNT = 200;
+        const MAX_WITHDRAW_AMOUNT = 10000;
+
+        let currentUserPoints = 0;
+        let currentUserId = null;
+        let selectedMethod = null;
+
+        const amountInput = document.getElementById('amountInput');
+        const accountInput = document.getElementById('accountInput');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const amountError = document.getElementById('amountError');
+        const presetButtons = document.querySelectorAll('.preset-amount');
+        const paymentMethods = document.querySelectorAll('.method-option');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const successModal = document.getElementById('successModal'); // <<< নতুন
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        currentUserPoints = doc.data().totalPoints || 0;
+                        document.getElementById('userBalance').textContent = currentUserPoints.toLocaleString('bn-BD');
+
+                        if (currentUserPoints < MIN_BALANCE_REQUIRED) {
+                            document.getElementById('mainForm').style.display = 'none';
+                            document.getElementById('insufficientBalanceMessage').style.display = 'block';
+                        }
+                    }
+                });
+            } else { window.location.replace('auth.html'); }
+        });
+
+        function validateForm() {
+            const amount = parseInt(amountInput.value, 10);
+            const accountNumber = accountInput.value.trim();
+            let isValid = true;
+            amountError.style.display = 'none';
+
+            if (isNaN(amount) || amount < MIN_WITHDRAW_AMOUNT || amount > MAX_WITHDRAW_AMOUNT) {
+                amountError.textContent = `পরিমাণ ${MIN_WITHDRAW_AMOUNT} থেকে ${MAX_WITHDRAW_AMOUNT} এর মধ্যে হতে হবে।`;
+                amountError.style.display = 'block'; isValid = false;
+            } else if (amount > currentUserPoints) {
+                amountError.textContent = 'আপনার অ্যাকাউন্টে পর্যাপ্ত পয়েন্ট নেই।';
+                amountError.style.display = 'block'; isValid = false;
+            }
+            if (!selectedMethod || accountNumber.length < 5) { isValid = false; }
+            confirmBtn.disabled = !isValid;
+        }
+
+        presetButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                presetButtons.forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                amountInput.value = button.dataset.amount;
+                validateForm();
+            });
+        });
+
+        amountInput.addEventListener('input', () => {
+            presetButtons.forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.amount === amountInput.value);
+            });
+            validateForm();
+        });
+
+        paymentMethods.forEach(method => {
+            method.addEventListener('click', () => {
+                paymentMethods.forEach(m => m.classList.remove('selected'));
+                method.classList.add('selected');
+                selectedMethod = method.dataset.method;
+                if(selectedMethod === 'bKash') accountInput.placeholder = 'আপনার বিকাশ নাম্বার দিন';
+                else if(selectedMethod === 'Nagad') accountInput.placeholder = 'আপনার নগদ নাম্বার দিন';
+                else if(selectedMethod === 'Binance') accountInput.placeholder = 'আপনার Binance ID দিন';
+                validateForm();
+            });
+        });
+
+        accountInput.addEventListener('input', validateForm);
+        
+        // <<< পরিবর্তন: নতুন Modal দেখানোর ফাংশন >>>
+        function showSuccessModal(amount) {
+            document.getElementById('successMessage').textContent = `আপনার ${amount.toLocaleString('bn-BD')} পয়েন্টের উইথড্র অনুরোধ সফলভাবে জমা হয়েছে। ২৪ ঘন্টার মধ্যে এটি সম্পন্ন করা হবে।`;
+            successModal.classList.add('active');
+        }
+
+        document.getElementById('modalActionBtn').addEventListener('click', () => {
+            window.location.href = 'wallet.html';
+        });
+
+        confirmBtn.addEventListener('click', async () => {
+            loadingOverlay.style.display = 'flex';
+            confirmBtn.disabled = true;
+
+            const amountToWithdraw = parseInt(amountInput.value, 10);
+            const userRef = db.collection('users').doc(currentUserId);
+            const transactionRef = userRef.collection('transactions').doc();
+            const batch = db.batch();
+
+            batch.update(userRef, { totalPoints: firebase.firestore.FieldValue.increment(-amountToWithdraw) });
+            batch.set(transactionRef, {
+                amount: amountToWithdraw, type: 'withdraw', method: selectedMethod,
+                account: accountInput.value.trim(), status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            try {
+                await batch.commit();
+                loadingOverlay.style.display = 'none';
+                showSuccessModal(amountToWithdraw); // <<< পরিবর্তন: alert এর বদলে Modal
+            } catch (error) {
+                console.error("Error processing withdrawal:", error);
+                alert('উইথড্র প্রক্রিয়া সম্পন্ন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।');
+                loadingOverlay.style.display = 'none';
+                confirmBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

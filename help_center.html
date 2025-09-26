@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - হেল্প সেন্টার</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-color: #e9ecef;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        .main-header { position: fixed; z-index: 1000; top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .main-header .back-btn { font-size: 18px; color: var(--subtle-text-color); background-color: #e4e6eb; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; }
+        
+        .help-card { background: var(--card-bg-color); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 15px; }
+        .help-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--primary-color); }
+        .help-card p { font-size: 14px; line-height: 1.6; color: var(--text-color); }
+        
+        .contact-card { background: linear-gradient(135deg, var(--primary-color), #4267B2); color: white; text-align: center; }
+        .contact-card h3 { color: white; }
+        .contact-btn { display: inline-block; background: white; color: var(--primary-color); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 10px; }
+        
+        .bottom-nav { position: fixed; z-index: 1000; bottom: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center; height: 55px; border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        .nav-item-wrapper { flex: 1; } .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; } .nav-item i { font-size: 20px; } .nav-item span { font-size: 10px; margin-top: 3px; } .nav-item.active { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <a href="profile.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <span class="logo-text">হেল্প সেন্টার</span>
+        <div></div>
+    </header>
+
+    <main class="main-content">
+        <div class="help-card">
+            <h3><i class="fas fa-coins"></i> পয়েন্ট কিভাবে আয় করবেন?</h3>
+            <p>পোস্ট করুন, লাইক ও কমেন্ট করুন। প্রতিদিন লগইন করুন এবং অন্যদের ফলো করুন। মনিটাইজেশন চালু করলে ডাবল পয়েন্ট পাবেন।</p>
+        </div>
+
+        <div class="help-card">
+            <h3><i class="fas fa-hand-holding-usd"></i> উইথড্র করার নিয়ম</h3>
+            <p>কমপক্ষে ২০০০ পয়েন্ট থাকতে হবে। ওয়ালেট থেকে উইথড্র অপশনে গিয়ে আপনার পেমেন্ট মাধ্যম সিলেক্ট করুন এবং পরিমাণ লিখুন।</p>
+        </div>
+
+        <div class="help-card">
+            <h3><i class="fas fa-dollar-sign"></i> মনিটাইজেশন কি?</h3>
+            <p>মনিটাইজেশন চালু করলে আপনি প্রতিটি কাজের জন্য ডাবল পয়েন্ট পাবেন এবং নামের পাশে ভেরিফাই ব্যাজ দেখাবে। ১০০ ফলোয়ার ও ২০ পোস্ট থাকতে হবে।</p>
+        </div>
+
+        <div class="help-card">
+            <h3><i class="fas fa-exchange-alt"></i> P2P ট্রেডিং</h3>
+            <p>P2P মার্কেটে আপনি নিরাপদে অন্যদের সাথে পয়েন্ট কিনতে ও বিক্রি করতে পারবেন। সব লেনদেন এসক্রো সিস্টেমের মাধ্যমে সুরক্ষিত।</p>
+        </div>
+
+        <div class="help-card">
+            <h3><i class="fas fa-chart-line"></i> শেয়ার মার্কেট</h3>
+            <p>শেয়ার কিনে বিক্রি করে লাভ করুন। বাজারের দাম অনুযায়ী শেয়ারের দাম ওঠানামা করে। সঠিক সময়ে কিনুন ও বিক্রি করুন।</p>
+        </div>
+
+        <div class="help-card contact-card">
+            <h3><i class="fas fa-headset"></i> সাহায্য প্রয়োজন?</h3>
+            <p>কোন সমস্যা হলে আমাদের সাথে যোগাযোগ করুন। আমরা ২৪/৭ আপনার সেবায় নিয়োজিত।</p>
+            <a href="mailto:support@growfy.com" class="contact-btn">ইমেইল করুন</a>
+        </div>
+    </main>
+    
+    <div class="bottom-nav">
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+</body>
+</html>

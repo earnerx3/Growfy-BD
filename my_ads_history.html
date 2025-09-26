@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - আমার বিজ্ঞাপনসমূহ</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 20px; 
+        }
+        
+        /* --- Header (Consistent) --- */
+        .main-header { 
+            position: fixed; z-index: 1000; top: 0; left: 0; right: 0;
+            background: var(--card-bg-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .header-title { font-size: 18px; font-weight: 700; }
+        .header-icon a { 
+            font-size: 20px; color: var(--text-color); 
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none; 
+        }
+        
+        .main-content { max-width: 500px; margin: 0 auto; padding: 15px; animation: fadeIn 0.4s; }
+
+        .history-toggle { display: flex; background-color: var(--border-color); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+        .history-toggle button { flex: 1; padding: 9px; border: none; background-color: transparent; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.3s ease; }
+        .history-toggle button.active { background-color: var(--card-bg-color); color: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        
+        .ad-card {
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+            padding: 12px;
+        }
+        .ad-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .ad-type-badge { padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 700; color: var(--white-color); }
+        .ad-type-badge.buy { background-color: var(--success-color); }
+        .ad-type-badge.sell { background-color: var(--danger-color); }
+        .ad-date { font-size: 12px; color: var(--subtle-text-color); }
+        
+        .ad-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; }
+        .detail-item .label { font-size: 12px; color: var(--subtle-text-color); }
+        .detail-item .value { font-weight: 600; }
+        
+        .ad-footer { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .status-badge { padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 600; }
+        .status-badge.active { background-color: #e7f3ff; color: var(--primary-color); }
+        .status-badge.completed { background-color: #e8f5e9; color: var(--success-color); }
+        .status-badge.cancelled { background-color: #fbe9e7; color: var(--danger-color); }
+        .cancel-btn { background-color: var(--danger-color); color: var(--white-color); border: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        
+        .loading-msg { padding: 40px; text-align: center; color: var(--subtle-text-color); }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-icon"><a href="post_ad.html"><i class="fas fa-arrow-left"></i></a></div>
+        <h2 class="header-title">আমার বিজ্ঞাপনসমূহ</h2>
+        <div class="header-icon"><a href="#"><i class="fas fa-filter"></i></a></div>
+    </header>
+
+    <main class="main-content">
+        <div class="history-toggle">
+            <button id="ongoingBtn" class="active">চলমান</button>
+            <button id="completedBtn">সম্পন্ন</button>
+        </div>
+
+        <div id="adsList">
+            <p class="loading-msg">লোড হচ্ছে...</p>
+        </div>
+    </main>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+            authDomain: "growfy-cd6ac.firebaseapp.com",
+            projectId: "growfy-cd6ac",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const ongoingBtn = document.getElementById('ongoingBtn');
+        const completedBtn = document.getElementById('completedBtn');
+        const adsList = document.getElementById('adsList');
+        let currentUserId = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                fetchAds('active');
+            } else { window.location.replace('auth.html'); }
+        });
+        
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            return new Date(timestamp.seconds * 1000).toLocaleString('bn-BD', {
+                day: 'numeric', month: 'short', year: 'numeric'
+            });
+        }
+        
+        function renderAds(ads) {
+            if (ads.length === 0) {
+                adsList.innerHTML = '<p class="loading-msg">কোনো বিজ্ঞাপন পাওয়া যায়নি।</p>';
+                return;
+            }
+            adsList.innerHTML = '';
+            ads.forEach(ad => {
+                const isBuyAd = ad.adType === 'buy';
+                const actionButton = ad.status === 'active' ? 
+                    `<button class="cancel-btn" data-id="${ad.id}" data-amount="${ad.availablePoints}" data-type="${ad.adType}">বাতিল করুন</button>` 
+                    : '';
+
+                const adCard = `
+                    <div class="ad-card">
+                        <div class="ad-header">
+                            <span class="ad-type-badge ${isBuyAd ? 'buy' : 'sell'}">${isBuyAd ? 'ক্রয় বিজ্ঞাপন' : 'বিক্রয় বিজ্ঞাপন'}</span>
+                            <span class="ad-date">${formatDate(ad.createdAt)}</span>
+                        </div>
+                        <div class="ad-details">
+                            <div class="detail-item">
+                                <p class="label">মূল্য (প্রতি পয়েন্ট)</p>
+                                <p class="value">৳${ad.pricePerPoint.toFixed(2)}</p>
+                            </div>
+                            <div class="detail-item">
+                                <p class="label">পরিমাণ</p>
+                                <p class="value">${ad.availablePoints.toLocaleString('bn-BD')} পয়েন্ট</p>
+                            </div>
+                        </div>
+                        <div class="ad-footer">
+                            <span class="status-badge ${ad.status}">${ad.status === 'active' ? 'চলমান' : (ad.status === 'completed' ? 'সম্পন্ন' : 'বাতিল')}</span>
+                            ${actionButton}
+                        </div>
+                    </div>
+                `;
+                adsList.innerHTML += adCard;
+            });
+        }
+
+        async function fetchAds(statusType) {
+            if (!currentUserId) return;
+            adsList.innerHTML = '<p class="loading-msg">লোড হচ্ছে...</p>';
+            
+            let query;
+            if (statusType === 'active') {
+                query = db.collection('p2p_ads')
+                          .where('sellerId', '==', currentUserId)
+                          .where('status', '==', 'active');
+            } else { // completed or cancelled
+                query = db.collection('p2p_ads')
+                          .where('sellerId', '==', currentUserId)
+                          .where('status', 'in', ['completed', 'cancelled']);
+            }
+            
+            try {
+                const snapshot = await query.orderBy('createdAt', 'desc').get();
+                const ads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAds(ads);
+            } catch (error) {
+                console.error("Error fetching ads:", error);
+                adsList.innerHTML = '<p class="loading-msg">বিজ্ঞাপন লোড করা সম্ভব হয়নি।</p>';
+            }
+        }
+        
+        async function handleCancelAd(adId, amount, adType) {
+             if (!confirm('আপনি কি সত্যিই এই বিজ্ঞাপনটি বাতিল করতে চান?')) return;
+
+             const adRef = db.collection('p2p_ads').doc(adId);
+             const userRef = db.collection('users').doc(currentUserId);
+             
+             try {
+                await db.runTransaction(async (transaction) => {
+                    const adDoc = await transaction.get(adRef);
+                    if (!adDoc.exists || adDoc.data().status !== 'active') {
+                        throw new Error("এই বিজ্ঞাপনটি আর فعال নেই।");
+                    }
+                    
+                    // Step 1: Update the ad's status to 'cancelled'
+                    transaction.update(adRef, { status: 'cancelled' });
+                    
+                    // Step 2: If it was a 'sell' ad, return the locked points to the user
+                    if (adType === 'sell') {
+                        transaction.update(userRef, {
+                            lockedPoints: firebase.firestore.FieldValue.increment(-parseFloat(amount)),
+                            totalPoints: firebase.firestore.FieldValue.increment(parseFloat(amount))
+                        });
+                    }
+                });
+                
+                alert('বিজ্ঞাপনটি সফলভাবে বাতিল করা হয়েছে।');
+                fetchAds('active'); // Refresh the list
+             } catch(error) {
+                alert('একটি সমস্যা হয়েছে: ' + error.message);
+                console.error("Cancellation failed:", error);
+             }
+        }
+
+        ongoingBtn.addEventListener('click', () => {
+            ongoingBtn.classList.add('active');
+            completedBtn.classList.remove('active');
+            fetchAds('active');
+        });
+        
+        completedBtn.addEventListener('click', () => {
+            completedBtn.classList.add('active');
+            ongoingBtn.classList.remove('active');
+            fetchAds('completed');
+        });
+        
+        adsList.addEventListener('click', function(e) {
+            if (e.target.classList.contains('cancel-btn')) {
+                const adId = e.target.dataset.id;
+                const amount = e.target.dataset.amount;
+                const adType = e.target.dataset.type;
+                handleCancelAd(adId, amount, adType);
+            }
+        });
+    </script>
+</body>
+</html>

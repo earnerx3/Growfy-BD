@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - ওয়ালেট</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12; /* <<< নতুন: Pending স্ট্যাটাসের জন্য রঙ */
+            --background-color: #f7f8fa;
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        .main-header, .bottom-nav { transition: transform 0.4s ease-in-out; }
+        .main-header { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 1000; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .header-icons { display: flex; gap: 10px; }
+        .header-icon a { font-size: 18px; color: var(--subtle-text-color); background-color: #e4e6eb; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
+        .bottom-nav { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center; height: 55px; border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 1000; }
+        .nav-item-wrapper { flex: 1; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; }
+        .nav-item i { font-size: 20px; }
+        .nav-item span { font-size: 10px; margin-top: 3px; } 
+        .nav-item.active { color: var(--primary-color); }
+
+        .wallet-container { padding: 10px 0; }
+
+        .balance-card { background: linear-gradient(135deg, #4c68d7 0%, #1c3aa9 100%); color: var(--white-color); padding: 30px 25px; border-radius: 24px; text-align: center; box-shadow: 0 10px 30px rgba(76, 104, 215, 0.4); margin-bottom: 30px; position: relative; overflow: hidden; }
+        .balance-card::before { content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255, 255, 255, 0.05); border-radius: 50%; }
+        .balance-card .balance-label { font-size: 15px; opacity: 0.8; margin-bottom: 8px; font-weight: 500; }
+        .balance-card .balance-amount { font-family: 'Oswald', sans-serif; font-size: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px; letter-spacing: 1px; }
+        .balance-card .balance-amount i.fa-coins { font-size: 32px; opacity: 0.9; }
+        .balance-card .user-info { font-size: 14px; opacity: 0.7; margin-top: 12px; }
+
+        .wallet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .action-button { flex: 1; background-color: var(--card-bg-color); padding: 20px 15px; border-radius: 16px; text-align: center; text-decoration: none; font-weight: 700; font-size: 15px; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid var(--border-color); }
+        .action-button:hover { transform: translateY(-4px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .action-button.withdraw-btn { color: var(--danger-color); }
+        .action-button.deposit-btn { color: var(--success-color); }
+        .action-button i { font-size: 18px; }
+
+        .transaction-history { background: var(--card-bg-color); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+        /* <<< পরিবর্তন: টাইটেল ছোট করা হয়েছে >>> */
+        .transaction-history h3 { font-family: 'Oswald', sans-serif; font-size: 17px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); color: #333; }
+        .transaction-list { list-style: none; }
+        .transaction-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 15px 5px; transition: background-color 0.2s ease; border-radius: 10px; }
+        .transaction-item:not(:last-child) { border-bottom: 1px solid #f5f5f5; }
+        .transaction-item:hover { background-color: #f8f9fa; }
+        .transaction-details { display: flex; align-items: center; gap: 15px; }
+        .transaction-icon { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white-color); font-size: 16px; }
+        .transaction-icon.withdraw { background-color: var(--danger-color); box-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
+        .transaction-icon.deposit { background-color: var(--success-color); box-shadow: 0 0 10px rgba(39, 174, 96, 0.3); }
+        /* <<< পরিবর্তন: টেক্সট ছোট করা হয়েছে >>> */
+        .transaction-info .type { font-weight: 600; font-size: 14px; }
+        .transaction-info .date { font-size: 12px; color: var(--subtle-text-color); }
+        .transaction-amount { font-weight: 700; font-size: 15px; }
+        .transaction-amount.withdraw { color: var(--danger-color); }
+        .transaction-amount.deposit { color: var(--success-color); }
+        .no-transactions-msg { padding: 30px 0; text-align: center; color: var(--subtle-text-color); font-size: 14px; }
+
+        /* <<< নতুন স্টাইল শুরু: স্ট্যাটাস ব্যাজ এবং বাতিল বাটনের জন্য >>> */
+        .transaction-status-wrapper { width: 100%; display: flex; justify-content: flex-end; align-items: center; padding: 8px 0 0 57px; gap: 10px; }
+        .status-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 12px; text-transform: uppercase; }
+        .status-confirmed { background-color: rgba(39, 174, 96, 0.1); color: var(--success-color); }
+        .status-pending { background-color: rgba(243, 156, 18, 0.1); color: var(--warning-color); }
+        .status-rejected { background-color: rgba(231, 76, 60, 0.1); color: var(--danger-color); }
+        .cancel-btn { background: none; border: 1px solid var(--danger-color); color: var(--danger-color); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px; cursor: pointer; transition: background-color 0.2s; }
+        .cancel-btn:hover { background-color: rgba(231, 76, 60, 0.1); }
+
+        /* <<< নতুন স্টাইল শুরু: কাস্টম অ্যালার্ট Modal এর জন্য >>> */
+        .alert-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .alert-overlay.active { display: flex; opacity: 1; }
+        .alert-panel { background: var(--card-bg-color); border-radius: 16px; width: 90%; max-width: 320px; padding: 25px; text-align: center; animation: fadeIn 0.3s; }
+        .alert-panel .icon { font-size: 36px; color: var(--warning-color); margin-bottom: 15px; }
+        .alert-panel .title { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+        .alert-panel .message { font-size: 14px; color: var(--subtle-text-color); margin-bottom: 20px; line-height: 1.5; }
+        .alert-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .alert-button { padding: 10px; border-radius: 8px; border: none; font-weight: 600; font-size: 15px; cursor: pointer; transition: background-color 0.2s; }
+        .alert-button.confirm { background-color: var(--danger-color); color: white; }
+        .alert-button.cancel { background-color: #e4e6eb; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <span class="logo-text">Growfy</span>
+        <div class="header-icons">
+            <div class="header-icon"><a href="search.html"><i class="fas fa-search"></i></a></div>
+            <div class="header-icon"><a href="notifications.html"><i class="fas fa-bell"></i></a></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="wallet-container">
+            <div class="balance-card">
+                <p class="balance-label">মোট পয়েন্টস</p>
+                <h2 class="balance-amount" id="totalPointsBalance"><i class="fas fa-spinner fa-spin"></i></h2>
+                <p class="user-info" id="walletUserName">লোড হচ্ছে...</p>
+            </div>
+            <div class="wallet-actions">
+                <a href="withdraw.html" class="action-button withdraw-btn"><i class="fas fa-arrow-down"></i><span>উইথড্র</span></a>
+                <a href="deposit.html" class="action-button deposit-btn"><i class="fas fa-arrow-up"></i><span>ডিপোজিট</span></a>
+            </div>
+            <div class="transaction-history">
+                <h3>লেনদেনের ইতিহাস</h3>
+                <ul class="transaction-list" id="transactionList">
+                    <p class="no-transactions-msg">ইতিহাস লোড হচ্ছে...</p>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <div class="alert-overlay" id="customAlert">
+        <div class="alert-panel">
+            <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <h4 class="title" id="alertTitle">আপনি কি নিশ্চিত?</h4>
+            <p class="message" id="alertMessage">আপনি এই লেনদেনটি বাতিল করতে চান?</p>
+            <div class="alert-buttons">
+                <button class="alert-button cancel" id="alertCancelBtn">ফিরে যান</button>
+                <button class="alert-button confirm" id="alertConfirmBtn">নিশ্চিত করুন</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item active"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+            authDomain: "growfy-cd6ac.firebaseapp.com",
+            projectId: "growfy-cd6ac",
+            // আপনার বাকি কনফিগারেশন...
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // <<< পরিবর্তন: নতুন নাম্বার ফরম্যাটিং ফাংশন >>>
+        function formatNumber(num) {
+            const number = Number(num) || 0;
+            if (number < 1000) return number.toLocaleString('bn-BD');
+            if (number < 1000000) return (number / 1000).toFixed(1).replace('.0', '') + 'K';
+            if (number < 1000000000) return (number / 1000000).toFixed(1).replace('.0', '') + 'M';
+            return (number / 1000000000).toFixed(1).replace('.0', '') + 'B';
+        }
+        
+        function timeAgo(timestamp) {
+            if (!timestamp || !timestamp.toDate) return 'কিছুক্ষণ আগে';
+            const now = new Date();
+            const seconds = Math.floor((now - timestamp.toDate()) / 1000);
+            if (seconds < 60) return "এইমাত্র";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} মিনিট আগে`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} ঘন্টা আগে`;
+            const days = Math.floor(hours / 24);
+            return `${days} দিন আগে`;
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchUserWallet(user.uid);
+                fetchTransactionHistory(user.uid);
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+
+        function fetchUserWallet(userId) {
+            const balanceElement = document.getElementById('totalPointsBalance');
+            const userNameElement = document.getElementById('walletUserName');
+            db.collection('users').doc(userId).onSnapshot(doc => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    balanceElement.innerHTML = `<i class="fas fa-coins"></i> ${formatNumber(userData.totalPoints)}`;
+                    userNameElement.textContent = userData.fullName || 'ব্যবহারকারী';
+                } else { balanceElement.textContent = "ত্রুটি"; }
+            }, error => { balanceElement.textContent = "ত্রুটি"; });
+        }
+
+        // <<< পরিবর্তন: স্ট্যাটাস এবং বাতিল বাটনসহ নতুন ফাংশন >>>
+        function fetchTransactionHistory(userId) {
+            const listElement = document.getElementById('transactionList');
+            const transactionsRef = db.collection('users').doc(userId).collection('transactions').orderBy('createdAt', 'desc').limit(15);
+
+            transactionsRef.onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    listElement.innerHTML = '<p class="no-transactions-msg">কোনো লেনদেন পাওয়া যায়নি।</p>';
+                    return;
+                }
+
+                let historyHtml = '';
+                snapshot.forEach(doc => {
+                    const trans = doc.data();
+                    const transId = doc.id; // <<< নতুন: transaction ID পাওয়া
+                    const isWithdraw = trans.type === 'withdraw';
+                    
+                    const iconClass = isWithdraw ? 'fa-arrow-down' : 'fa-arrow-up';
+                    const typeClass = isWithdraw ? 'withdraw' : 'deposit';
+                    const typeText = isWithdraw ? 'উইথড্র' : 'ডিপোজিট';
+                    const sign = isWithdraw ? '-' : '+';
+
+                    // স্ট্যাটাস এবং বাতিল বাটনের জন্য লজিক
+                    let statusHtml = '';
+                    if (isWithdraw) {
+                        const statusClass = `status-${trans.status}`; // confirmed, pending, rejected
+                        const statusText = {
+                            confirmed: 'অনুমোদিত',
+                            pending: 'বিবেচনাধীন',
+                            rejected: 'প্রত্যাখ্যাত'
+                        }[trans.status] || 'Unknown';
+
+                        statusHtml = `
+                            <div class="transaction-status-wrapper">
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                                ${trans.status === 'pending' ? `<button class="cancel-btn" data-id="${transId}">বাতিল</button>` : ''}
+                            </div>
+                        `;
+                    }
+
+                    historyHtml += `
+                        <li class="transaction-item" id="trans-${transId}">
+                            <div class="transaction-details">
+                                <div class="transaction-icon ${typeClass}"><i class="fas ${iconClass}"></i></div>
+                                <div class="transaction-info">
+                                    <p class="type">${typeText}</p>
+                                    <p class="date">${timeAgo(trans.createdAt)}</p>
+                                </div>
+                            </div>
+                            <div class="transaction-amount ${typeClass}">
+                                ${sign}${formatNumber(trans.amount)}
+                            </div>
+                            ${statusHtml}
+                        </li>
+                    `;
+                });
+                listElement.innerHTML = historyHtml;
+
+            }, error => {
+                listElement.innerHTML = '<p class="no-transactions-msg">লেনদেন লোড করা সম্ভব হয়নি।</p>';
+            });
+        }
+
+        // <<< নতুন: কাস্টম অ্যালার্ট এবং বাতিল করার সম্পূর্ণ লজিক >>>
+        const customAlert = document.getElementById('customAlert');
+        const alertConfirmBtn = document.getElementById('alertConfirmBtn');
+        const alertCancelBtn = document.getElementById('alertCancelBtn');
+        let transactionToCancelId = null;
+
+        function showCancelAlert(transId) {
+            transactionToCancelId = transId;
+            customAlert.classList.add('active');
+        }
+
+        function hideCancelAlert() {
+            transactionToCancelId = null;
+            customAlert.classList.remove('active');
+        }
+
+        alertCancelBtn.addEventListener('click', hideCancelAlert);
+        document.querySelector('.alert-overlay').addEventListener('click', (e) => {
+            if (e.target === customAlert) {
+                hideCancelAlert();
+            }
+        });
+
+        alertConfirmBtn.addEventListener('click', async () => {
+            if (!transactionToCancelId) return;
+            const user = auth.currentUser;
+            if (!user) return;
+
+            // এখানে Firestore এ ডাটা আপডেট হবে
+            const transRef = db.collection('users').doc(user.uid).collection('transactions').doc(transactionToCancelId);
+            
+            try {
+                // উদাহরণস্বরূপ, আমরা স্ট্যাটাস 'rejected' করে দিচ্ছি। আপনি চাইলে ডিলিটও করতে পারেন।
+                await transRef.update({ status: 'rejected' });
+                // UI থেকে 바로 মুছে ফেলার পরিবর্তে, onSnapshot নিজেই UI আপডেট করবে।
+                // const itemToRemove = document.getElementById(`trans-${transactionToCancelId}`);
+                // if(itemToRemove) itemToRemove.remove();
+                alert('লেনদেন সফলভাবে বাতিল করা হয়েছে।');
+            } catch (error) {
+                console.error("Error cancelling transaction: ", error);
+                alert("বাতিল করা সম্ভব হয়নি।");
+            } finally {
+                hideCancelAlert();
+            }
+        });
+
+        // ইভেন্ট ডেলিগেশন ব্যবহার করে বাতিল বাটনে ক্লিক ধরা
+        document.getElementById('transactionList').addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('cancel-btn')) {
+                const transId = e.target.getAttribute('data-id');
+                showCancelAlert(transId);
+            }
+        });
+
+    </script>
+</body>
+</html>

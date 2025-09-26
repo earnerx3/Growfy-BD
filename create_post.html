@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - নতুন পোস্ট</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --background-color: #ffffff; 
+            --secondary-bg-color: #f0f2f5;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 60px; 
+            padding-bottom: 90px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .create-post-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--background-color);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-title { 
+            font-size: 18px; 
+            font-weight: 700;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .back-btn { 
+            font-size: 22px; 
+            color: var(--text-color); 
+            text-decoration: none; 
+        }
+
+        .main-content { padding: 20px 15px; }
+        .user-info { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .user-info img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+        .user-info .name { font-weight: 600; font-size: 16px; }
+
+        #postTextarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 22px;
+            min-height: 150px;
+            font-family: inherit;
+            color: var(--text-color);
+            background-color: var(--background-color);
+        }
+        #postTextarea::placeholder { color: #b0b3b8; }
+
+        .post-options {
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 5px 0;
+            margin: 20px 0;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            color: var(--subtle-text-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .option-item:hover {
+            background-color: var(--secondary-bg-color);
+        }
+        .option-item i {
+            font-size: 20px;
+        }
+        .fa-images { color: #45bd62; }
+        .fa-user-tag { color: #1877f2; }
+        .fa-poll { color: #f7b928; }
+        .fa-ellipsis-h { color: #65676b; }
+
+        .image-link-section { margin-top: 20px; }
+        #imageLinkInput { width: 100%; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 14px; margin-bottom: 10px; }
+        .link-instructions { font-size: 12px; color: var(--subtle-text-color); line-height: 1.5; }
+        .link-instructions a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
+
+        .image-preview-container { margin-top: 15px; position: relative; display: none; }
+        #imagePreview { width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border-color); }
+        #removeImageBtn { position: absolute; top: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.6); color: var(--white-color); border: none; width: 25px; height: 25px; border-radius: 50%; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+        .create-post-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--background-color);
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .post-btn {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .post-btn:disabled {
+            background-color: #a6cbf7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <header class="create-post-header">
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="header-title">নতুন পোস্ট তৈরি করুন</h1>
+    </header>
+
+    <main class="main-content">
+        <div class="user-info">
+            <img src="https://api.dicebear.com/9.x/initials/svg?seed=?" id="userProfilePic" alt="Profile">
+            <span class="name" id="userName">লোড হচ্ছে...</span>
+        </div>
+
+        <textarea id="postTextarea" placeholder="আপনার মনে কী চলছে?"></textarea>
+        
+        <div class="post-options">
+            <div class="option-item coming-soon-btn"><i class="fas fa-images"></i></div>
+            <div class="option-item coming-soon-btn"><i class="fas fa-user-tag"></i></div>
+            <div class="option-item coming-soon-btn"><i class="fas fa-poll"></i></div>
+            <div class="option-item coming-soon-btn"><i class="fas fa-ellipsis-h"></i></div>
+        </div>
+
+        <div class="image-link-section">
+            <input type="url" id="imageLinkInput" placeholder="এখানে ছবির লিঙ্ক পেস্ট করুন...">
+            <p class="link-instructions">
+                সাপোর্টেড লিঙ্ক: <strong>.jpg, .png, .gif</strong>। লিঙ্ক তৈরি করতে <a href="https://imgbb.com/" target="_blank">ImgBB</a> ব্যবহার করতে পারেন।
+            </p>
+            <div class="image-preview-container" id="imagePreviewContainer">
+                <img src="" alt="Image Preview" id="imagePreview">
+                <button id="removeImageBtn"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="create-post-footer">
+        <button id="submitPostBtn" class="post-btn" disabled>পোস্ট করুন</button>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          projectId: "growfy-cd6ac"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const postTextarea = document.getElementById('postTextarea');
+        const submitPostBtn = document.getElementById('submitPostBtn');
+        const imageLinkInput = document.getElementById('imageLinkInput');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        const comingSoonBtns = document.querySelectorAll('.coming-soon-btn');
+
+        let currentUser = null;
+        let userData = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                const userRef = db.collection('users').doc(user.uid);
+                
+                userRef.get().then(doc => {
+                    if (doc.exists) {
+                        userData = doc.data();
+                        const nameInitial = userData.fullName.charAt(0).toUpperCase();
+                        // ব্যবহারকারীর আসল প্রোফাইল ছবি অথবা ডিফল্ট ছবি দেখানো হচ্ছে
+                        document.getElementById('userProfilePic').src = userData.profileImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${nameInitial}`;
+                        document.getElementById('userName').textContent = userData.fullName;
+                        postTextarea.placeholder = `আপনার মনে কী চলছে, ${userData.fullName.split(' ')[0]}?`;
+                    }
+                }).catch(error => {
+                    console.error("Error fetching user data:", error);
+                    document.getElementById('userName').textContent = "ব্যবহারকারী";
+                });
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+        
+        function updateButtonState() {
+            const hasText = postTextarea.value.trim() !== '';
+            const hasImage = imageLinkInput.value.trim() !== '';
+            submitPostBtn.disabled = !hasText && !hasImage;
+        }
+
+        postTextarea.addEventListener('input', () => {
+            postTextarea.style.height = 'auto';
+            postTextarea.style.height = (postTextarea.scrollHeight) + 'px';
+            updateButtonState();
+        });
+
+        imageLinkInput.addEventListener('input', () => {
+            const url = imageLinkInput.value.trim();
+            const validExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+            const isValid = validExtensions.some(ext => url.toLowerCase().endsWith(ext));
+
+            if (isValid && url !== '') {
+                imagePreview.src = url;
+                imagePreviewContainer.style.display = 'block';
+            } else {
+                imagePreviewContainer.style.display = 'none';
+            }
+            updateButtonState();
+        });
+
+        removeImageBtn.addEventListener('click', () => {
+            imageLinkInput.value = '';
+            imagePreviewContainer.style.display = 'none';
+            updateButtonState();
+        });
+
+        submitPostBtn.addEventListener('click', async () => {
+            if (!currentUser || !userData) return;
+
+            const postContent = postTextarea.value.trim();
+            const imageUrl = imageLinkInput.value.trim();
+
+            if (!postContent && !imageUrl) {
+                alert("পোস্ট করার জন্য কিছু লিখুন অথবা একটি ছবির লিঙ্ক দিন।");
+                return;
+            }
+
+            submitPostBtn.disabled = true;
+            submitPostBtn.textContent = 'পোস্ট হচ্ছে...';
+            
+            // ব্যবহারকারীর আসল প্রোফাইল ছবি অথবা একটি ডিফল্ট URL ব্যবহার করা হচ্ছে
+            const authorAvatarUrl = userData.profileImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${userData.fullName.charAt(0).toUpperCase()}`;
+
+            const newPost = {
+                authorId: currentUser.uid,
+                authorName: userData.fullName,
+                authorAvatar: authorAvatarUrl, // <-- এখানে আসল ছবিটি সেভ হচ্ছে
+                authorIsVerified: userData.isVerified || false,
+                authorIsMonetized: userData.isMonetized || false,
+                text: postContent,
+                imageUrl: imageUrl || null,
+                likes: 0,
+                comments: 0,
+                views: 0,
+                points: 5, // নতুন পোস্টের জন্য প্রাথমিক পয়েন্ট
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                // পোস্ট ডেটাবেসে যোগ করা
+                await db.collection('posts').add(newPost);
+
+                // ব্যবহারকারীকে পয়েন্ট দেওয়া
+                const userRef = db.collection('users').doc(currentUser.uid);
+                const pointsToAdd = userData.isMonetized ? 10 : 5; // মনিটাইজড হলে ডাবল পয়েন্ট
+                await userRef.update({ totalPoints: firebase.firestore.FieldValue.increment(pointsToAdd) });
+
+                alert("আপনার পোস্ট সফলভাবে তৈরি হয়েছে!");
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error("Error adding post: ", error);
+                alert("পোস্ট করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
+                submitPostBtn.disabled = false;
+                submitPostBtn.textContent = 'পোস্ট করুন';
+            }
+        });
+
+        comingSoonBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert('এই ফিচারটি শীঘ্রই আসছে!');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - ডিপোজিট</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        .main-header { position: fixed; z-index: 1000; top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary-color); }
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
+
+        /* Deposit Page Specific Styles */
+        .deposit-container { padding: 10px 0; }
+        .instructions-card, .form-card {
+            background: var(--card-bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+        }
+        .instructions-card h3, .form-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .instructions-list { list-style: none; padding-left: 0; }
+        .instructions-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .step-number {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .payment-number-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 10px;
+        }
+        .payment-number-box img { height: 24px; }
+        .payment-number-box span { font-weight: 600; font-size: 16px; }
+        .copy-btn {
+            background: #e4e6eb;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+        .form-input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; outline-color: var(--primary-color); }
+        .confirm-button { width: 100%; background: var(--primary-color); color: var(--white-color); border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+        .confirm-button:disabled { background-color: #a0c7f8; cursor: not-allowed; }
+        
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; }
+        .loading-overlay .fas { font-size: 40px; color: var(--primary-color); animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <a href="wallet.html" style="color: var(--text-color); font-size: 20px;"><i class="fas fa-arrow-left"></i></a>
+        <span class="logo-text">ডিপোজিট</span>
+        <span></span> <!-- For alignment -->
+    </header>
+
+    <main class="main-content">
+        <div class="deposit-container">
+            <!-- Instructions -->
+            <div class="instructions-card">
+                <h3>ডিপোজিট করার নিয়মাবলী</h3>
+                <ul class="instructions-list">
+                    <li>
+                        <div class="step-number">১</div>
+                        <div>
+                            <strong>টাকা পাঠান (Send Money)</strong>
+                            <p>অনুগ্রহ করে নিচের যেকোনো একটি নম্বরে আপনার কাঙ্ক্ষিত পরিমাণ টাকা পাঠান।</p>
+                            <div class="payment-number-box">
+                                <img src="https://i.ibb.co/2stQz8b/bkash.png" alt="bKash">
+                                <span id="bkashNumber">01700000000</span>
+                                <button class="copy-btn" data-clipboard-target="#bkashNumber">কপি</button>
+                            </div>
+                            <div class="payment-number-box" style="margin-top: 10px;">
+                                <img src="https://i.ibb.co/qY0yS98/nagad.png" alt="Nagad">
+                                <span id="nagadNumber">01800000000</span>
+                                <button class="copy-btn" data-clipboard-target="#nagadNumber">কপি</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-number">২</div>
+                        <div>
+                            <strong>ফর্ম পূরণ করুন</strong>
+                            <p>টাকা পাঠানোর পর, নিচের ফর্মটি সঠিকভাবে পূরণ করে জমা দিন।</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Deposit Form -->
+            <div class="form-card">
+                <h3>ডিপোজিট তথ্য জমা দিন</h3>
+                <div class="form-group">
+                    <label for="amountInput">ডিপোজিট পরিমাণ (BDT)</label>
+                    <input type="number" id="amountInput" class="form-input" placeholder="কত টাকা পাঠিয়েছেন?">
+                </div>
+                <div class="form-group">
+                    <label for="senderInput">আপনার যে নাম্বার থেকে টাকা পাঠিয়েছেন</label>
+                    <input type="text" id="senderInput" class="form-input" placeholder="আপনার বিকাশ/নগদ নম্বর">
+                </div>
+                <div class="form-group">
+                    <label for="trxIdInput">ট্রানজেকশন আইডি (TrxID)</label>
+                    <input type="text" id="trxIdInput" class="form-input" placeholder="টাকা পাঠানোর পর পাওয়া TrxID">
+                </div>
+                <button class="confirm-button" id="confirmBtn" disabled>ডিপোজিট কনফার্ম করুন</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <i class="fas fa-spinner"></i>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          databaseURL: "https://growfy-cd6ac-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "growfy-cd6ac",
+          storageBucket: "growfy-cd6ac.firebasestorage.app",
+          messagingSenderId: "452195809736",
+          appId: "1:452195809736:web:11204e0fd1e01e92a9a8fd",
+          measurementId: "G-DFDJRCX4ED"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        let currentUserId = null;
+
+        const amountInput = document.getElementById('amountInput');
+        const senderInput = document.getElementById('senderInput');
+        const trxIdInput = document.getElementById('trxIdInput');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const copyButtons = document.querySelectorAll('.copy-btn');
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+
+        function validateForm() {
+            const amount = amountInput.value;
+            const sender = senderInput.value.trim();
+            const trxId = trxIdInput.value.trim();
+
+            if (amount > 0 && sender.length >= 11 && trxId.length > 5) {
+                confirmBtn.disabled = false;
+            } else {
+                confirmBtn.disabled = true;
+            }
+        }
+        
+        [amountInput, senderInput, trxIdInput].forEach(input => {
+            input.addEventListener('input', validateForm);
+        });
+
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.dataset.clipboardTarget;
+                const targetElement = document.querySelector(targetId);
+                navigator.clipboard.writeText(targetElement.textContent).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = 'কপি হয়েছে!';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+            });
+        });
+
+        confirmBtn.addEventListener('click', async () => {
+            if (!currentUserId) return;
+            
+            loadingOverlay.style.display = 'flex';
+            confirmBtn.disabled = true;
+
+            const amount = parseInt(amountInput.value, 10);
+            const senderNumber = senderInput.value.trim();
+            const trxId = trxIdInput.value.trim();
+
+            const transactionRef = db.collection('users').doc(currentUserId).collection('transactions').doc();
+            
+            try {
+                await transactionRef.set({
+                    amount: amount,
+                    type: 'deposit',
+                    senderNumber: senderNumber,
+                    trxId: trxId,
+                    status: 'pending', // Admin will review and approve
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert('আপনার ডিপোজিট অনুরোধ সফলভাবে জমা দেওয়া হয়েছে!');
+                window.location.href = 'wallet.html';
+            } catch (error) {
+                console.error("Error submitting deposit:", error);
+                alert('ডিপোজিট অনুরোধ জমা দেওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।');
+                loadingOverlay.style.display = 'none';
+                confirmBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

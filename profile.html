@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - প্রোফাইল</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --verified-color: #1d9bf0;
+            --monetized-color: #ff6b35; 
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        /* হেডার এবং নেভিগেশন */
+        .main-header, .bottom-nav { position: fixed; z-index: 1000; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .main-header { top: 10px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .main-header .settings-icon a { font-size: 18px; color: var(--subtle-text-color); background-color: #e4e6eb; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
+        .bottom-nav { bottom: 10px; display: flex; justify-content: space-around; align-items: center; height: 55px; }
+        .nav-item-wrapper { flex: 1; } .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; } .nav-item i { font-size: 20px; } .nav-item span { font-size: 10px; margin-top: 3px; } .nav-item.active { color: var(--primary-color); }
+
+        /* প্রোফাইল কার্ড */
+        /* <<< পরিবর্তন: কার্ড একটু ছোট করা হয়েছে >>> */
+        .profile-header-card { text-align: center; background: var(--card-bg-color); padding: 15px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 15px; transition: background 0.5s ease; }
+        .monetized-profile-card { background: linear-gradient(135deg, #fff3e0, #ffe8cc); }
+        .profile-avatar-wrapper { position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto; cursor: pointer; }
+        .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--white-color); box-shadow: 0 0 15px rgba(0,0,0,0.15); }
+        .edit-avatar-icon { position: absolute; bottom: 0; right: 0; background-color: var(--primary-color); color: var(--white-color); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid var(--white-color); }
+        .profile-name { font-size: 22px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .verified-badge { font-size: 20px; } 
+        .profile-username { color: var(--subtle-text-color); font-size: 15px; margin-bottom: 10px; }
+        .profile-bio { font-size: 14px; color: var(--text-color); line-height: 1.5; margin-bottom: 15px; }
+        
+        .profile-action-buttons { margin-bottom: 15px; }
+        .follow-btn, .following-btn { border: none; border-radius: 8px; padding: 10px 20px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; width: 100%; max-width: 250px; }
+        .follow-btn { background-color: var(--primary-color); color: white; }
+        .follow-btn:hover { background-color: #166fe5; }
+        .following-btn { background-color: #e4e6eb; color: var(--text-color); }
+        .following-btn:hover { background-color: #d0d2d7; }
+
+        /* <<< পরিবর্তন: স্ট্যাটাস বক্সের নতুন স্টাইল >>> */
+        .profile-stats-grid { display: flex; justify-content: space-around; padding: 12px; border-radius: 12px; background-color: #f7f8fa; margin-top: 15px; }
+        .stat-item { text-align: center; }
+        .stat-item .stat-number { font-weight: 700; font-size: 18px; }
+        .stat-item .stat-label { font-size: 13px; color: var(--subtle-text-color); }
+
+        /* উইথড্র বাটন */
+        .withdraw-button-wrapper { margin-top: 20px; margin-bottom: 20px; }
+        .withdraw-button-primary { width: 100%; padding: 15px; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; color: var(--white-color); background: linear-gradient(45deg, var(--danger-color), #ff7e5f); box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s ease; }
+        .withdraw-button-primary:hover { transform: translateY(-3px); }
+
+        /* বাটন গ্রিড */
+        .profile-actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .action-grid-item { background-color: var(--card-bg-color); padding: 15px; border-radius: 12px; text-decoration: none; color: var(--text-color); box-shadow: var(--shadow); transition: all 0.2s ease; text-align: center; }
+        .action-grid-item:hover { transform: translateY(-4px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .action-grid-item .icon-wrapper { font-size: 22px; margin-bottom: 10px; color: var(--primary-color); }
+        .action-grid-item .item-title { font-weight: 600; font-size: 14px; }
+        .action-grid-item .item-subtitle { font-size: 12px; color: var(--subtle-text-color); font-weight: 500; display: block; margin-top: 4px; }
+        .share-market-ticker.positive { color: var(--success-color); font-weight: 700; }
+        .share-market-ticker.negative { color: var(--danger-color); font-weight: 700; }
+        
+        /* মেন্যু লিস্ট */
+        .profile-menu-list { background-color: var(--card-bg-color); border-radius: 16px; box-shadow: var(--shadow); padding: 10px; }
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 10px; text-decoration: none; color: var(--text-color); transition: background-color 0.2s ease; }
+        .menu-item:not(:last-child) { border-bottom: 1px solid var(--border-color); }
+        .menu-item:hover { background-color: #f7f8fa; }
+        .menu-item-icon { width: 32px; text-align: center; font-size: 16px; color: var(--primary-color); }
+        .menu-item-text { flex-grow: 1; }
+        .item-title { font-weight: 600; font-size: 15px; }
+        .item-subtitle { font-size: 12px; color: var(--subtle-text-color); }
+        .menu-item .fa-chevron-right { margin-left: auto; color: var(--subtle-text-color); font-size: 14px; }
+        .menu-item.activated .menu-item-icon { color: var(--success-color); }
+        
+        /* Modal Styles */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-panel { background: var(--card-bg-color); border-radius: 16px; width: 90%; max-width: 450px; padding: 20px; animation: fadeIn 0.3s; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 20px; font-weight: 700; }
+        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--subtle-text-color); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
+        .modal-button { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+
+        /* <<< নতুন: অ্যাভাটার গ্যালারির জন্য স্টাইল >>> */
+        .avatar-selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 15px; margin-top: 10px; }
+        .avatar-option { width: 100%; border-radius: 50%; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 3px solid transparent; }
+        .avatar-option:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <span class="logo-text">Growfy</span>
+        <div class="settings-icon" id="headerIcon"><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></a></div>
+    </header>
+
+    <main class="main-content">
+        <div class="profile-header-card" id="profileHeaderCard">
+            <div class="profile-avatar-wrapper" id="avatarChangeBtn">
+                <img src="https://api.dicebear.com/9.x/initials/svg?seed=?" class="profile-avatar" id="profileAvatar" alt="Profile Avatar">
+                <div class="edit-avatar-icon" id="editAvatarIcon"><i class="fas fa-pencil-alt"></i></div>
+            </div>
+            <h2 class="profile-name"><span id="profileName">লোড হচ্ছে...</span><i id="verifiedBadge" class="fas fa-check-circle verified-badge" style="display: none;"></i></h2>
+            <p class="profile-username" id="profileUsername">@...</p>
+            <p class="profile-bio" id="profileBio"></p>
+            
+            <div class="profile-action-buttons" id="profileActionButtons"></div>
+
+            <div class="profile-stats-grid">
+                <div class="stat-item"><p class="stat-number" id="postCount">0</p><p class="stat-label">পোস্ট</p></div>
+                <div class="stat-item"><p class="stat-number" id="followerCount">0</p><p class="stat-label">ফলোয়ার</p></div>
+                <div class="stat-item"><p class="stat-number" id="followingCount">0</p><p class="stat-label">ফলোয়িং</p></div>
+            </div>
+        </div>
+        
+        <div class="withdraw-button-wrapper" id="withdrawBtnWrapper">
+            <a href="withdraw.html" class="withdraw-button-primary"><i class="fas fa-hand-holding-usd"></i><span>উইথড্র করুন</span></a>
+        </div>
+        
+        <div class="profile-actions-grid">
+            <a href="wallet.html" class="action-grid-item"><div class="icon-wrapper"><i class="fas fa-wallet"></i></div><span class="item-title">ওয়ালেট</span><span class="item-subtitle" id="walletBalanceText">0 পয়েন্ট</span></a>
+            <a href="p2p_marketplace.html" class="action-grid-item"><div class="icon-wrapper"><i class="fas fa-exchange-alt"></i></div><span class="item-title">P2P মার্কেট</span><span class="item-subtitle">পয়েন্ট কিনুন/বিক্রি</span></a>
+            <a href="share_market.html" class="action-grid-item"><div class="icon-wrapper"><i class="fas fa-chart-line"></i></div><span class="item-title">শেয়ার মার্কেট</span><span class="item-subtitle share-market-ticker positive" id="shareMarketChange">+0.00%</span></a>
+             <a href="#" id="userPostsLink" class="action-grid-item"><div class="icon-wrapper" style="color: #4CAF50;"><i class="fas fa-images"></i></div><span class="item-title">পোস্টসমূহ</span><span class="item-subtitle">সকল পোস্ট দেখুন</span></a>
+        </div>
+        
+        <div class="profile-menu-list" id="profileMenuList">
+            <a href="#" id="editProfileBtn" class="menu-item"><div class="menu-item-icon"><i class="fas fa-user-edit"></i></div><div class="menu-item-text"><p class="item-title">প্রোফাইল এডিট</p></div><i class="fas fa-chevron-right"></i></a>
+            <a href="monetization.html" class="menu-item" id="monetizationLink"><div class="menu-item-icon"><i class="fas fa-dollar-sign"></i></div><div class="menu-item-text"><p class="item-title">মনিটাইজেশন</p><p class="item-subtitle" id="monetizationStatusText">আবেদন করুন</p></div><i class="fas fa-chevron-right"></i></a>
+            <a href="help_center.html" class="menu-item"><div class="menu-item-icon"><i class="fas fa-question-circle"></i></div><div class="menu-item-text"><p class="item-title">হেল্প সেন্টার</p></div><i class="fas fa-chevron-right"></i></a>
+        </div>
+    </main>
+    
+    <div class="modal-overlay" id="avatarGridModal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h3 class="modal-title">আপনার অ্যাভাটার বেছে নিন</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="avatar-selection-grid" class="avatar-selection-grid">
+                </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal-panel">
+            <div class="modal-header"><h3 class="modal-title">প্রোফাইল তথ্য পরিবর্তন</h3><button class="close-modal">&times;</button></div>
+            <form id="editProfileForm">
+                <div class="form-group"><label for="editFullName">সম্পূর্ণ নাম (৭-৯ অক্ষর)</label><input type="text" id="editFullName" required></div>
+                <div class="form-group"><label for="editBio">আপনার বায়ো (১৪-১৭ অক্ষর)</label><textarea id="editBio" placeholder="নিজের সম্পর্কে কিছু লিখুন..."></textarea></div>
+                <button type="submit" class="modal-button" id="saveProfileBtn">তথ্য সেভ করুন</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="bottom-nav">
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item active"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          projectId: "growfy-cd6ac",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const avatarGridModal = document.getElementById('avatarGridModal'); // <<< পরিবর্তন
+        const editProfileModal = document.getElementById('editProfileModal');
+        let currentUserData = null; 
+
+        function renderProfileUI(userData, isOwnProfile) {
+            document.title = `${userData.fullName || 'User'} - Growfy প্রোফাইল`;
+            const defaultAvatar = `https://api.dicebear.com/9.x/initials/svg?seed=${userData.fullName ? userData.fullName.charAt(0) : 'G'}`;
+            document.getElementById('profileAvatar').src = userData.profileImageUrl || defaultAvatar;
+            document.getElementById('profileName').textContent = userData.fullName || 'ব্যবহারকারী';
+            document.getElementById('profileUsername').textContent = `@${userData.email ? userData.email.split('@')[0] : 'user'}`;
+            document.getElementById('profileBio').textContent = userData.bio || '';
+            document.getElementById('followerCount').textContent = (userData.followers || []).length;
+            document.getElementById('followingCount').textContent = (userData.following || []).length;
+            document.getElementById('walletBalanceText').textContent = `${(userData.totalPoints || 0).toLocaleString('bn-BD')} পয়েন্ট`;
+            const verifiedBadge = document.getElementById('verifiedBadge');
+            const profileHeaderCard = document.getElementById('profileHeaderCard');
+            profileHeaderCard.classList.remove('monetized-profile-card');
+            verifiedBadge.style.display = 'none';
+            if (userData.isMonetized) {
+                verifiedBadge.style.display = 'inline-block';
+                verifiedBadge.style.color = 'var(--monetized-color)';
+                profileHeaderCard.classList.add('monetized-profile-card');
+            } else if (userData.isVerified) {
+                verifiedBadge.style.display = 'inline-block';
+                verifiedBadge.style.color = 'var(--verified-color)';
+            }
+            if (isOwnProfile) {
+                const monetizationLink = document.getElementById('monetizationLink');
+                const monetizationStatusText = document.getElementById('monetizationStatusText');
+                monetizationLink.classList.remove('activated');
+                monetizationStatusText.textContent = 'আবেদন করুন';
+                if(userData.isMonetized) {
+                    monetizationLink.classList.add('activated');
+                    monetizationStatusText.textContent = 'সক্রিয়';
+                }
+            }
+        }
+        
+        async function handleFollow(authorId, followBtn) {
+            const user = auth.currentUser;
+            if (!user) { alert("অনুগ্রহ করে লগইন করুন।"); return; }
+            const wasFollowing = followBtn.classList.contains('following-btn');
+            followBtn.disabled = true;
+            const currentUserRef = db.collection('users').doc(user.uid);
+            const followedUserRef = db.collection('users').doc(authorId);
+            const batch = db.batch();
+            if (wasFollowing) {
+                batch.update(currentUserRef, { following: firebase.firestore.FieldValue.arrayRemove(authorId) });
+                batch.update(followedUserRef, { followers: firebase.firestore.FieldValue.arrayRemove(user.uid) });
+            } else {
+                batch.update(currentUserRef, { following: firebase.firestore.FieldValue.arrayUnion(authorId) });
+                batch.update(followedUserRef, { followers: firebase.firestore.FieldValue.arrayUnion(user.uid) });
+            }
+            try { await batch.commit(); } 
+            catch (error) { console.error("Follow/unfollow failed:", error); alert("অপারেশন ব্যর্থ হয়েছে।"); } 
+            finally { followBtn.disabled = false; }
+        }
+
+        function manageProfileView(isOwnProfile, profileUserId) {
+            document.getElementById('withdrawBtnWrapper').style.display = isOwnProfile ? 'block' : 'none';
+            document.getElementById('profileMenuList').style.display = isOwnProfile ? 'block' : 'none';
+            document.getElementById('headerIcon').style.display = isOwnProfile ? 'block' : 'none';
+            document.getElementById('editAvatarIcon').style.display = isOwnProfile ? 'flex' : 'none';
+            document.getElementById('avatarChangeBtn').style.pointerEvents = isOwnProfile ? 'auto' : 'none';
+            const actionButtonsContainer = document.getElementById('profileActionButtons');
+            actionButtonsContainer.innerHTML = ''; 
+            if (!isOwnProfile && currentUserData) {
+                const isFollowing = currentUserData.following?.includes(profileUserId);
+                const btnClass = isFollowing ? 'following-btn' : 'follow-btn';
+                const btnText = isFollowing ? 'Following' : 'Follow';
+                const followButton = document.createElement('button');
+                followButton.className = btnClass;
+                followButton.textContent = btnText;
+                followButton.addEventListener('click', () => handleFollow(profileUserId, followButton));
+                actionButtonsContainer.appendChild(followButton);
+            }
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                db.collection('users').doc(user.uid).onSnapshot(userDoc => {
+                    if (userDoc.exists) {
+                        currentUserData = userDoc.data();
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const profileUserId = urlParams.get('userId');
+                        const userIdToLoad = profileUserId || user.uid;
+                        const isOwnProfile = userIdToLoad === user.uid;
+                        manageProfileView(isOwnProfile, userIdToLoad);
+                        fetchUserProfileFromFirestore(userIdToLoad, isOwnProfile);
+                        countUserPosts(userIdToLoad);
+                        document.getElementById('userPostsLink').href = `user_posts.html?userId=${userIdToLoad}`;
+                    }
+                });
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+
+        function fetchUserProfileFromFirestore(userId, isOwnProfile) {
+            db.collection('users').doc(userId).onSnapshot(doc => {
+                if (doc.exists) { renderProfileUI(doc.data(), isOwnProfile); } 
+                else { console.error("User not found!"); document.body.innerHTML = "<h2 style='text-align: center; margin-top: 50px;'>ব্যবহারকারীকে খুঁজে পাওয়া যায়নি।</h2>"; }
+            });
+        }
+
+        async function countUserPosts(userId) {
+            const snapshot = await db.collection('posts').where('authorId', '==', userId).get();
+            document.getElementById('postCount').textContent = snapshot.size;
+        }
+
+        function openModal(modal) { modal.classList.add('active'); }
+        function closeModal(modal) { modal.classList.remove('active'); }
+
+        document.querySelectorAll('.close-modal, .modal-overlay').forEach(btn => btn.addEventListener('click', (e) => {
+            if (!e.target.closest('.modal-panel') || e.target.classList.contains('close-modal')) {
+                closeModal(avatarGridModal);
+                closeModal(editProfileModal);
+            }
+        }));
+        
+        // <<< পরিবর্তন শুরু: নতুন অ্যাভাটার সিলেকশন সিস্টেম >>>
+        const preselectedAvatars = [
+            "https://api.dicebear.com/9.x/micah/svg?seed=Felix", "https://api.dicebear.com/9.x/micah/svg?seed=Misty",
+            "https://api.dicebear.com/9.x/personas/svg?seed=John", "https://api.dicebear.com/9.x/personas/svg?seed=Jane",
+            "https://api.dicebear.com/9.x/adventurer-neutral/svg?seed=Leo", "https://api.dicebear.com/9.x/adventurer-neutral/svg?seed=Luna",
+            "https://api.dicebear.com/9.x/bottts/svg?seed=Max", "https://api.dicebear.com/9.x/bottts/svg?seed=Zoe",
+            "https://api.dicebear.com/9.x/big-smile/svg?seed=Sam", "https://api.dicebear.com/9.x/big-smile/svg?seed=Lia",
+            "https://api.dicebear.com/9.x/notionists/svg?seed=Alex", "https://api.dicebear.com/9.x/notionists/svg?seed=Mia"
+        ];
+
+        function populateAvatarGrid() {
+            const grid = document.getElementById('avatar-selection-grid');
+            grid.innerHTML = '';
+            preselectedAvatars.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'avatar-option';
+                img.alt = 'Avatar Option';
+                img.addEventListener('click', () => selectAvatar(url));
+                grid.appendChild(img);
+            });
+        }
+
+        async function selectAvatar(imageUrl) {
+            if (confirm('আপনি কি এই ছবিটি প্রোফাইল ছবি হিসেবে সেট করতে চান?')) {
+                const user = auth.currentUser;
+                if (!user) return;
+                try {
+                    await db.collection('users').doc(user.uid).update({ profileImageUrl: imageUrl });
+                    document.getElementById('profileAvatar').src = imageUrl;
+                    closeModal(avatarGridModal);
+                    alert('আপনার প্রোফাইল ছবি সফলভাবে পরিবর্তন করা হয়েছে।');
+                } catch (err) {
+                    console.error("Avatar update failed:", err);
+                    alert("ছবি পরিবর্তন করা যায়নি।");
+                }
+            }
+        }
+        
+        document.getElementById('avatarChangeBtn').addEventListener('click', () => {
+             const user = auth.currentUser;
+             const urlParams = new URLSearchParams(window.location.search);
+             const profileUserId = urlParams.get('userId');
+             if (user && (!profileUserId || profileUserId === user.uid)) {
+                 populateAvatarGrid(); 
+                 openModal(avatarGridModal);
+             }
+        });
+        // <<< পরিবর্তন শেষ >>>
+
+
+        document.getElementById('editProfileBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if(!user) return;
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            const userData = userDoc.data();
+            document.getElementById('editFullName').value = userData.fullName || '';
+            document.getElementById('editBio').value = userData.bio || '';
+            openModal(editProfileModal);
+        });
+
+        // <<< পরিবর্তন শুরু: প্রোফাইল এডিটে ভ্যালিডেশন যুক্ত করা হয়েছে >>>
+        document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if(!user) return;
+
+            const fullName = document.getElementById('editFullName').value;
+            const bio = document.getElementById('editBio').value;
+
+            // ভ্যালিডেশন চেক
+            if (fullName.length < 7 || fullName.length > 9) {
+                alert('নাম অবশ্যই ৭ থেকে ৯ অক্ষরের মধ্যে হতে হবে।');
+                return; // সাবমিট থামিয়ে দিন
+            }
+            if (bio.length < 14 || bio.length > 17) {
+                alert('বায়ো অবশ্যই ১৪ থেকে ১৭ অক্ষরের মধ্যে হতে হবে।');
+                return; // সাবমিট থামিয়ে দিন
+            }
+            
+            const saveBtn = document.getElementById('saveProfileBtn');
+            saveBtn.textContent = 'সেভ হচ্ছে...';
+            saveBtn.disabled = true;
+            try {
+                await db.collection('users').doc(user.uid).update({ fullName: fullName, bio: bio });
+            } catch (err) {
+                 console.error("Profile update failed: ", err);
+                 alert("প্রোফাইল আপডেট করা যায়নি।");
+            } finally {
+                closeModal(editProfileModal);
+                saveBtn.textContent = 'তথ্য সেভ করুন';
+                saveBtn.disabled = false;
+            }
+        });
+        // <<< পরিবর্তন শেষ >>>
+
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('আপনি কি নিশ্চিতভাবে লগ আউট করতে চান?')) {
+                auth.signOut().then(() => {
+                    localStorage.clear();
+                    window.location.replace('auth.html');
+                });
+            }
+        });
+        
+        setInterval(() => {
+            const changeElem = document.getElementById('shareMarketChange');
+            const isPositive = Math.random() > 0.4;
+            const changeValue = (Math.random() * 2.5).toFixed(2);
+            changeElem.textContent = `${isPositive ? '+' : '-'}${changeValue}%`;
+            changeElem.className = `item-subtitle share-market-ticker ${isPositive ? 'positive' : 'negative'}`;
+        }, 3500);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - P2P ট্রেড</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --background-color: #f0f2f5;
+            --card-bg-color: #ffffff;
+            --text-color: #050505;
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --border-color: #e9ecef;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 20px; 
+        }
+
+        .main-header {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 55px;
+            z-index: 1000;
+        }
+
+        .header-back {
+            font-size: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .header-menu {
+            font-size: 18px;
+            color: var(--subtle-text-color);
+        }
+
+        .main-content {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .trade-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .trade-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .trade-type {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .trade-amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .trade-rate {
+            font-size: 16px;
+            color: var(--subtle-text-color);
+        }
+
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(24, 119, 242, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .seller-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid var(--primary-color);
+        }
+
+        .seller-details h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .seller-stats {
+            font-size: 13px;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .verified-badge {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .trade-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.1);
+        }
+
+        .amount-display {
+            background: rgba(39, 174, 96, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .amount-display .label {
+            font-size: 14px;
+            color: var(--subtle-text-color);
+            margin-bottom: 5px;
+        }
+
+        .amount-display .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--success-color);
+        }
+
+        .security-notice {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .security-notice h4 {
+            color: var(--warning-color);
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .security-notice p {
+            font-size: 14px;
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .trade-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            color: white;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #229954, #27ae60);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <a href="p2p_marketplace.html" class="header-back"><i class="fas fa-arrow-left"></i></a>
+        <span class="header-title">P2P ট্রেড</span>
+        <i class="fas fa-ellipsis-v header-menu"></i>
+    </header>
+
+    <main class="main-content">
+        <div class="trade-container">
+            <div class="trade-header">
+                <div class="trade-type" id="tradeType">পয়েন্ট ক্রয় করুন</div>
+                <div class="trade-amount" id="tradeAmount">৳0.00</div>
+                <div class="trade-rate" id="tradeRate">@ ৳1.15 প্রতি পয়েন্ট</div>
+            </div>
+
+            <div class="seller-info" id="sellerInfo">
+                <img src="https://i.ibb.co/MDBx20R/growfy-logo.png" alt="Seller" class="seller-avatar" id="sellerAvatar">
+                <div class="seller-details">
+                    <h3 id="sellerName">Growfy Official <span class="verified-badge">✓ ভেরিফাইড</span></h3>
+                    <div class="seller-stats" id="sellerStats">100% পজিটিভ (1500 ট্রেড)</div>
+                </div>
+            </div>
+
+            <div class="security-notice">
+                <h4><i class="fas fa-shield-alt"></i> নিরাপত্তা নোটিস</h4>
+                <p>এই ট্রেডটি Growfy এর এসক্রো সিস্টেম দ্বারা সুরক্ষিত। পেমেন্ট সম্পূর্ণ না হওয়া পর্যন্ত পয়েন্ট লক থাকবে।</p>
+            </div>
+
+            <div class="trade-form">
+                <div class="form-group">
+                    <label for="pointAmount">পয়েন্ট পরিমাণ</label>
+                    <input type="number" id="pointAmount" placeholder="পয়েন্ট পরিমাণ লিখুন" min="1">
+                </div>
+
+                <div class="amount-display">
+                    <div class="label">মোট পেমেন্ট</div>
+                    <div class="value" id="totalPayment">৳0.00</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentMethod">পেমেন্ট মাধ্যম</label>
+                    <select id="paymentMethod">
+                        <option value="">পেমেন্ট মাধ্যম নির্বাচন করুন</option>
+                        <option value="bkash">বিকাশ</option>
+                        <option value="nagad">নগদ</option>
+                        <option value="rocket">রকেট</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="accountNumber">আপনার একাউন্ট নম্বর</label>
+                    <input type="text" id="accountNumber" placeholder="01XXXXXXXXX">
+                </div>
+            </div>
+
+            <div class="trade-actions">
+                <button class="btn btn-secondary" onclick="window.history.back()">
+                    <i class="fas fa-times"></i> বাতিল
+                </button>
+                <button class="btn btn-primary" id="startTradeBtn" onclick="startTrade()">
+                    <i class="fas fa-handshake"></i> ট্রেড শুরু করুন
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+            authDomain: "growfy-cd6ac.firebaseapp.com",
+            projectId: "growfy-cd6ac",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentOffer = null;
+        let currentUser = null;
+
+        // Get offer ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const offerId = urlParams.get('id');
+
+        // DOM elements
+        const pointAmountInput = document.getElementById('pointAmount');
+        const totalPaymentDisplay = document.getElementById('totalPayment');
+        const startTradeBtn = document.getElementById('startTradeBtn');
+
+        // Calculate total payment
+        pointAmountInput.addEventListener('input', function() {
+            const points = parseFloat(this.value) || 0;
+            const rate = currentOffer ? currentOffer.pricePerPoint : 1.15;
+            const total = points * rate;
+            totalPaymentDisplay.textContent = `৳${total.toFixed(2)}`;
+            document.getElementById('tradeAmount').textContent = `৳${total.toFixed(2)}`;
+        });
+
+        // Load offer details
+        async function loadOfferDetails() {
+            if (!offerId) {
+                alert('অবৈধ অফার ID');
+                window.history.back();
+                return;
+            }
+
+            // Check if it's a manual offer
+            if (offerId.startsWith('manual')) {
+                const manualOffers = {
+                    'manual1': {
+                        id: 'manual1',
+                        sellerName: 'Growfy Official',
+                        sellerAvatar: 'https://i.ibb.co/MDBx20R/growfy-logo.png',
+                        sellerFeedback: 100,
+                        completedTrades: 1500,
+                        pricePerPoint: 1.15,
+                        availablePoints: 99999,
+                        minLimit: 1000,
+                        maxLimit: 25000,
+                        paymentMethods: ['bkash', 'nagad'],
+                        isVerified: true
+                    }
+                };
+                currentOffer = manualOffers[offerId];
+            } else {
+                try {
+                    const doc = await db.collection('p2p_ads').doc(offerId).get();
+                    if (doc.exists) {
+                        currentOffer = { id: doc.id, ...doc.data() };
+                    } else {
+                        alert('অফার খুঁজে পাওয়া যায়নি');
+                        window.history.back();
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error loading offer:', error);
+                    alert('অফার লোড করতে সমস্যা হয়েছে');
+                    return;
+                }
+            }
+
+            // Update UI with offer details
+            document.getElementById('sellerName').innerHTML = `${currentOffer.sellerName} ${currentOffer.isVerified ? '<span class="verified-badge">✓ ভেরিফাইড</span>' : ''}`;
+            document.getElementById('sellerAvatar').src = currentOffer.sellerAvatar || `https://api.dicebear.com/9.x/initials/svg?seed=${currentOffer.sellerName}`;
+            document.getElementById('sellerStats').textContent = `${currentOffer.sellerFeedback || 99.8}% পজিটিভ (${currentOffer.completedTrades || 0} ট্রেড)`;
+            document.getElementById('tradeRate').textContent = `@ ৳${currentOffer.pricePerPoint.toFixed(2)} প্রতি পয়েন্ট`;
+            
+            // Set min/max limits
+            pointAmountInput.min = Math.ceil(currentOffer.minLimit / currentOffer.pricePerPoint);
+            pointAmountInput.max = Math.min(currentOffer.availablePoints, Math.floor(currentOffer.maxLimit / currentOffer.pricePerPoint));
+        }
+
+        // Start trade function
+        async function startTrade() {
+            if (!currentUser) {
+                alert('অনুগ্রহ করে লগইন করুন');
+                return;
+            }
+
+            const points = parseFloat(pointAmountInput.value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const accountNumber = document.getElementById('accountNumber').value;
+
+            // Validation
+            if (!points || points < 1) {
+                alert('অনুগ্রহ করে বৈধ পয়েন্ট পরিমাণ লিখুন');
+                return;
+            }
+
+            if (!paymentMethod) {
+                alert('অনুগ্রহ করে পেমেন্ট মাধ্যম নির্বাচন করুন');
+                return;
+            }
+
+            if (!accountNumber) {
+                alert('অনুগ্রহ করে আপনার একাউন্ট নম্বর লিখুন');
+                return;
+            }
+
+            const totalAmount = points * currentOffer.pricePerPoint;
+
+            // Check limits
+            if (totalAmount < currentOffer.minLimit || totalAmount > currentOffer.maxLimit) {
+                alert(`ট্রেড পরিমাণ ৳${currentOffer.minLimit} - ৳${currentOffer.maxLimit} এর মধ্যে হতে হবে`);
+                return;
+            }
+
+            // Show loading
+            startTradeBtn.classList.add('loading');
+            startTradeBtn.innerHTML = '<div class="spinner"></div> ট্রেড তৈরি হচ্ছে...';
+
+            try {
+                // Create trade document
+                const tradeData = {
+                    buyerId: currentUser.uid,
+                    sellerId: currentOffer.sellerId || 'growfy_official',
+                    adId: currentOffer.id,
+                    pointAmount: points,
+                    pricePerPoint: currentOffer.pricePerPoint,
+                    totalAmount: totalAmount,
+                    paymentMethod: paymentMethod,
+                    buyerAccountNumber: accountNumber,
+                    status: 'pending_payment',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                const tradeRef = await db.collection('p2p_trades').add(tradeData);
+                
+                // Redirect to trade chat/details page
+                window.location.href = `p2p_trade_chat.html?tradeId=${tradeRef.id}`;
+
+            } catch (error) {
+                console.error('Error creating trade:', error);
+                alert('ট্রেড তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+                
+                // Reset button
+                startTradeBtn.classList.remove('loading');
+                startTradeBtn.innerHTML = '<i class="fas fa-handshake"></i> ট্রেড শুরু করুন';
+            }
+        }
+
+        // Auth state listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loadOfferDetails();
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+    </script>
+</body>
+</html>

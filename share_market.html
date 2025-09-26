@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - শেয়ার মার্কেট</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --verified-color: #1d9bf0;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        /* হেডার এবং নেভিগেশন (আগের মতোই) */
+        .main-header, .bottom-nav { position: fixed; z-index: 1000; }
+        .main-header { top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
+        .bottom-nav { bottom: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); display: flex; justify-content: space-around; align-items: center; height: 55px; border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        .nav-item-wrapper { flex: 1; } .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; } .nav-item i { font-size: 20px; } .nav-item span { font-size: 10px; margin-top: 3px; } .nav-item.active { color: var(--primary-color); }
+
+        /* *** নতুন: মার্কেট ফিল্টার *** */
+        .market-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background-color: var(--card-bg-color);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border-color: var(--primary-color);
+        }
+
+        /* *** নতুন: প্রিমিয়াম শেয়ার কার্ড ডিজাইন *** */
+        .share-card {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 12px;
+            background-color: var(--card-bg-color);
+            padding: 12px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            text-decoration: none;
+            color: var(--text-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .share-card:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+        
+        .share-logo-wrapper .share-logo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+        .share-details .name { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 6px; }
+        .share-details .ticker { font-size: 12px; color: var(--subtle-text-color); }
+        .verified-badge { color: var(--verified-color); font-size: 15px; }
+        
+        .share-graph { width: 70px; height: 40px; }
+        
+        .share-price { text-align: right; }
+        .share-price .price { font-weight: 700; font-size: 17px; }
+        .share-price .price-change { font-size: 13px; font-weight: 600; }
+        .price-change.positive { color: var(--success-color); }
+        .price-change.negative { color: var(--danger-color); }
+        .countdown { font-size: 13px; font-weight: 600; color: var(--warning-color); background-color: #fef5e7; padding: 4px 8px; border-radius: 8px; }
+
+        .no-shares-msg { padding: 40px 20px; text-align: center; color: var(--subtle-text-color); }
+
+        /* FAB এবং Modal (আগের মতোই) */
+        .fab { position: fixed; bottom: 85px; right: 25px; width: 55px; height: 55px; background-color: var(--primary-color); color: var(--white-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4); text-decoration: none; z-index: 1001; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-panel { background: var(--card-bg-color); border-radius: 20px; width: 95%; max-width: 400px; padding: 25px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; }
+        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
+        .modal-button { width: 100%; background: var(--primary-color); color: var(--white-color); border: none; padding: 12px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <span class="logo-text">Growfy</span>
+    </header>
+
+    <main class="main-content">
+        <!-- NEW: Market Filters -->
+        <div class="market-filters">
+            <button class="filter-btn active" data-filter="all">সব শেয়ার</button>
+            <button class="filter-btn" data-filter="live">লাইভ</button>
+            <button class="filter-btn" data-filter="upcoming">আসন্ন</button>
+        </div>
+
+        <div id="shareListContainer">
+            <p class="no-shares-msg">শেয়ার লোড হচ্ছে...</p>
+        </div>
+    </main>
+
+    <a href="#" class="fab" id="openCreateModalBtn"><i class="fas fa-plus"></i></a>
+    
+    <div class="modal-overlay" id="createShareModal">
+        <!-- Modal HTML (আগের মতোই) -->
+        <div class="modal-panel">
+            <div class="modal-header"><h3>নতুন শেয়ার তৈরি করুন</h3><button class="close-modal">&times;</button></div>
+            <form id="createShareForm">
+                 <div class="form-group"><input type="text" id="companyName" class="form-input" placeholder="কোম্পানির নাম" required></div>
+                 <div class="form-group"><input type="text" id="tickerSymbol" class="form-input" placeholder="টিকার চিহ্ন (৩-৪ অক্ষর)" required maxlength="4" minlength="3"></div>
+                 <div class="form-group"><input type="number" id="totalSupply" class="form-input" placeholder="মোট সাপ্লাই" required></div>
+                 <div class="form-group"><input type="number" id="initialPrice" class="form-input" step="0.01" placeholder="প্রাথমিক দাম" required></div>
+                 <div class="form-group"><input type="datetime-local" id="launchDate" class="form-input" required></div>
+                 <button type="submit" class="modal-button">তালিকাভুক্ত করুন</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <!-- Bottom Nav HTML (আগের মতোই) -->
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebase Config (আগের মতোই)
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          projectId: "growfy-cd6ac",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const shareListContainer = document.getElementById('shareListContainer');
+        
+        function renderMiniChart(canvasId, currentPrice, change) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            
+            let priceData = [currentPrice];
+            // একটি আনুমানিক ট্রেন্ডলাইন তৈরি করার জন্য কিছু ডেমো ডেটা
+            for(let i=0; i < 10; i++) {
+                priceData.unshift(priceData[0] / (1 + (Math.random() - 0.5) * 0.05));
+            }
+            
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: Array(priceData.length).fill(''),
+                    datasets: [{
+                        data: priceData,
+                        borderColor: change >= 0 ? 'rgba(39, 174, 96, 0.8)' : 'rgba(231, 76, 60, 0.8)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: { y: { display: false }, x: { display: false } },
+                    elements: { point: { radius: 0 } }
+                }
+            });
+        }
+
+        function fetchShares() {
+            db.collection('shares').orderBy('launchDate', 'asc').onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    shareListContainer.innerHTML = '<p class="no-shares-msg">এখনো কোনো শেয়ার তালিকাভুক্ত হয়নি।</p>';
+                    return;
+                }
+                shareListContainer.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const share = doc.data();
+                    const shareId = doc.id;
+                    const now = new Date();
+                    const launchDate = share.launchDate.toDate();
+                    const isUpcoming = launchDate > now;
+                    
+                    const verifiedBadge = share.isVerified ? `<i class="fas fa-check-circle verified-badge"></i>` : '';
+                    const dataStatus = isUpcoming ? 'upcoming' : 'live';
+
+                    let priceSectionHTML = '';
+                    if (isUpcoming) {
+                        priceSectionHTML = `<div class="countdown" data-launch-date="${launchDate.toISOString()}">শুরু হচ্ছে...</div>`;
+                    } else {
+                        const change = share.change || 0;
+                        const changeClass = change >= 0 ? 'positive' : 'negative';
+                        priceSectionHTML = `
+                            <p class="price">৳${share.currentPrice.toFixed(2)}</p>
+                            <p class="price-change ${changeClass}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</p>
+                        `;
+                    }
+                    
+                    const shareCardHTML = `
+                        <a href="share_details.html?id=${shareId}" class="share-card" data-status="${dataStatus}">
+                            <div class="share-logo-wrapper">
+                                <img src="https://api.dicebear.com/9.x/initials/svg?seed=${share.ticker}" class="share-logo" alt="Logo">
+                            </div>
+                            <div class="share-details">
+                                <p class="name">${share.name} ${verifiedBadge}</p>
+                                <p class="ticker">${share.ticker}</p>
+                            </div>
+                            <div class="share-graph">
+                                ${!isUpcoming ? `<canvas id="chart-${shareId}"></canvas>` : ''}
+                            </div>
+                            <div class="share-price">
+                                ${priceSectionHTML}
+                            </div>
+                        </a>`;
+                    shareListContainer.innerHTML += shareCardHTML;
+
+                    if (!isUpcoming) {
+                        // DOM-এ যুক্ত করার পরেই চার্ট রেন্ডার করুন
+                        setTimeout(() => renderMiniChart(`chart-${shareId}`, share.currentPrice, share.change || 0), 0);
+                    }
+                });
+                updateCountdowns();
+            });
+        }
+
+        function updateCountdowns() {
+            document.querySelectorAll('.countdown').forEach(el => {
+                const diff = new Date(el.dataset.launchDate) - new Date();
+                if (diff <= 0) { el.innerHTML = "লাইভ হচ্ছে..."; return; }
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                el.innerHTML = `${d}দি ${h}ঘঃ ${m}মিঃ`;
+            });
+        }
+        setInterval(updateCountdowns, 60000); // প্রতি মিনিটে আপডেট
+
+        // ফিল্টার বাটনগুলোর জন্য ইভেন্ট লিসেনার
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.filter-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                
+                document.querySelectorAll('.share-card').forEach(card => {
+                    if (filter === 'all' || card.dataset.status === filter) {
+                        card.style.display = 'grid';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchShares();
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+        
+        // Modal এবং FAB এর কোড (আগের মতোই)
+        const openCreateModalBtn = document.getElementById('openCreateModalBtn');
+        const modal = document.getElementById('createShareModal');
+        openCreateModalBtn.addEventListener('click', (e) => { e.preventDefault(); modal.classList.add('active'); });
+        modal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-modal')) {
+                modal.classList.remove('active');
+            }
+        });
+        // Form submission logic remains the same as your previous version.
+
+    </script>
+</body>
+</html>

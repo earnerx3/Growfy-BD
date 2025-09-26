@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - P2P মার্কেটপ্লেস</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(24, 119, 242, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(24, 119, 242, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(24, 119, 242, 0); }
+        }
+        @keyframes text-fade {
+            0%, 100% { opacity: 0; transform: translateY(5px); }
+            20%, 80% { opacity: 1; transform: translateY(0); }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        /* --- Header and Nav --- */
+        .main-header, .bottom-nav { position: fixed; z-index: 1000; }
+        .main-header { top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 55px; }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .header-icon-wrapper { position: relative; }
+        .header-icon-wrapper .header-icon a { font-size: 18px; color: var(--subtle-text-color); background-color: #e4e6eb; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--danger-color);
+            border-radius: 50%;
+            border: 2px solid var(--white-color);
+            display: none; /* JS will control this */
+        }
+
+        .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
+        .bottom-nav { bottom: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center; height: 55px; border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        .nav-item-wrapper { flex: 1; } .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; } .nav-item i { font-size: 20px; } .nav-item span { font-size: 10px; margin-top: 3px; } .nav-item.active { color: var(--primary-color); }
+
+        /* --- P2P Page Specific Styles --- */
+        .p2p-container { padding: 10px 0; }
+        .p2p-toggle { display: flex; background-color: #e4e6eb; border-radius: 25px; padding: 4px; margin: 10px 0 15px 0; }
+        .p2p-toggle button { flex: 1; padding: 10px; border: none; background-color: transparent; color: var(--subtle-text-color); font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 21px; transition: all 0.3s ease; }
+        .p2p-toggle button.active { background-color: var(--white-color); color: var(--primary-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        
+        .action-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .action-bar-btn { flex: 1; background-color: var(--card-bg-color); border: 1px solid var(--border-color); padding: 10px; border-radius: 10px; text-align: center; text-decoration: none; color: var(--text-color); font-size: 14px; font-weight: 600; }
+        .action-bar-btn i { margin-right: 6px; color: var(--primary-color); }
+
+        .offer-list .offer-card { background-color: var(--card-bg-color); border-radius: 16px; padding: 15px; margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .offer-card .offer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .offer-header .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-info .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .user-name-feedback .user-name { font-weight: 700; font-size: 16px; }
+        .user-name-feedback .user-feedback { font-size: 12px; color: var(--success-color); font-weight: 500; }
+        .offer-header .action-btn { padding: 8px 20px; border: none; border-radius: 8px; color: var(--white-color); font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; }
+        .action-btn.buy-btn { background-color: var(--success-color); }
+        .action-btn.sell-btn { background-color: var(--danger-color); }
+        .action-btn:disabled { background-color: #e4e6eb; color: var(--subtle-text-color); cursor: not-allowed; font-size: 12px; padding: 8px 12px; }
+        .offer-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .offer-details-item p { margin: 0; font-size: 13px; color: var(--subtle-text-color); }
+        .offer-details-item .value { font-size: 15px; color: var(--text-color); font-weight: 600; }
+        .offer-price .value { color: var(--success-color); }
+        .offer-footer .payment-methods { display: flex; align-items: center; gap: 8px; }
+        .payment-methods span { font-size: 13px; color: var(--subtle-text-color); font-weight: 500; }
+        .payment-methods img { height: 20px; }
+        .loading-msg { padding: 40px; text-align: center; color: var(--subtle-text-color); }
+
+        /* --- Floating Action Button (FAB) --- */
+        .fab-container { position: fixed; bottom: 85px; right: 20px; z-index: 1001; display: flex; align-items: center; gap: 10px; }
+        .fab-text { background: rgba(0,0,0,0.7); color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s, transform 0.3s; }
+        .fab-text.visible { animation: text-fade 4s linear infinite; }
+        .fab { width: 50px; height: 50px; background-color: var(--primary-color); color: var(--white-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite; }
+
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <span class="logo-text">Growfy</span>
+        <div class="header-icon-wrapper">
+            <div class="header-icon"><a href="order_history.html"><i class="fas fa-receipt"></i></a></div>
+            <div class="notification-badge" id="historyIconBadge"></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="p2p-container">
+            <div class="p2p-toggle">
+                <button id="buyBtn" class="active">ক্রয় করুন</button>
+                <button id="sellBtn">বিক্রয় করুন</button>
+            </div>
+
+            <div class="action-bar">
+                <a href="my_orders.html" class="action-bar-btn"><i class="fas fa-list-alt"></i>আমার অর্ডারসমূহ</a>
+                <a href="messages.html" class="action-bar-btn"><i class="fas fa-envelope"></i>মেসেজ</a>
+            </div>
+
+            <div class="offer-list" id="offerList">
+                <p class="loading-msg">অফার লোড হচ্ছে...</p>
+            </div>
+        </div>
+    </main>
+    
+    <div class="fab-container">
+        <span class="fab-text" id="fabText"></span>
+        <a href="post_ad.html" class="fab"><i class="fas fa-plus"></i></a>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item active"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          projectId: "growfy-cd6ac",
+          // ... other config
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- DOM Elements ---
+        const buyBtn = document.getElementById('buyBtn');
+        const sellBtn = document.getElementById('sellBtn');
+        const offerList = document.getElementById('offerList');
+        const historyIconBadge = document.getElementById('historyIconBadge');
+        const fabText = document.getElementById('fabText');
+
+        // --- Payment Logos ---
+        const paymentLogos = {
+            bkash: 'bkash.png', // নিশ্চিত করুন এই ফাইলগুলো আপনার প্রজেক্টে আছে
+            nagad: 'nagad.png'
+        };
+
+        // --- FAB Text Animation ---
+        const fabMessages = ["নতুন পোস্ট তৈরি করুন", "আপনার কয়েন বিক্রি করুন", "কয়েন কিনুন"];
+        let messageIndex = 0;
+        setInterval(() => {
+            fabText.textContent = fabMessages[messageIndex];
+            fabText.classList.add('visible');
+            messageIndex = (messageIndex + 1) % fabMessages.length;
+        }, 4000);
+
+        // --- Render Offers Function ---
+        function renderOffers(offers, activeTab) {
+            if (offers.length === 0) {
+                offerList.innerHTML = '<p class="loading-msg">এই মুহূর্তে কোনো অফার নেই।</p>';
+                return;
+            }
+            offerList.innerHTML = '';
+            
+            const actionText = activeTab === 'buy' ? 'ক্রয় করুন' : 'বিক্রয় করুন';
+            const actionClass = activeTab === 'buy' ? 'buy-btn' : 'sell-btn';
+
+            offers.forEach(offer => {
+                const userAvatar = offer.sellerAvatar || `https://api.dicebear.com/9.x/initials/svg?seed=${offer.sellerName}`;
+                let paymentMethodsHTML = '';
+                if (offer.paymentMethods && Array.isArray(offer.paymentMethods)) {
+                    offer.paymentMethods.forEach(methodKey => {
+                        const logoUrl = paymentLogos[methodKey.toLowerCase()];
+                        if (logoUrl) paymentMethodsHTML += `<img src="${logoUrl}" alt="${methodKey}">`;
+                    });
+                }
+                
+                const isAvailable = offer.status === 'active' && !offer.isManual;
+                const buttonHTML = isAvailable ? 
+                    `<a href="p2p_trade.html?id=${offer.id}" class="action-btn ${actionClass}">${actionText}</a>` :
+                    `<button class="action-btn" disabled>Not Available</button>`;
+
+                const offerCard = `
+                    <div class="offer-card">
+                        <div class="offer-header">
+                            <div class="user-info">
+                                <img src="${userAvatar}" alt="User Avatar" class="user-avatar">
+                                <div class="user-name-feedback">
+                                    <p class="user-name">${offer.sellerName}</p>
+                                    <p class="user-feedback">${offer.sellerFeedback || '99.8'}% পজিটিভ ফিডব্যাক</p>
+                                </div>
+                            </div>
+                            ${buttonHTML}
+                        </div>
+                        <div class="offer-body">
+                            <div class="offer-details-item offer-price"> <p>মূল্য (প্রতি পয়েন্ট)</p> <p class="value">৳${offer.pricePerPoint.toFixed(2)}</p> </div>
+                            <div class="offer-details-item"> <p>এভেইলেবল</p> <p class="value">${(offer.availablePoints || 0).toLocaleString('bn-BD')} পয়েন্ট</p> </div>
+                            <div class="offer-details-item" style="grid-column: span 2;"> <p>লিমিট</p> <p class="value">৳${(offer.minLimit || 0).toLocaleString('bn-BD')} - ৳${(offer.maxLimit || 0).toLocaleString('bn-BD')}</p> </div>
+                        </div>
+                        <div class="offer-footer"> <div class="payment-methods"> <span>পেমেন্ট:</span> ${paymentMethodsHTML} </div> </div>
+                    </div>`;
+                offerList.innerHTML += offerCard;
+            });
+        }
+        
+        // --- Fetch Offers from Firebase ---
+        async function fetchAndRenderOffers(activeTab) {
+            offerList.innerHTML = '<p class="loading-msg">অফার লোড হচ্ছে...</p>';
+            const adTypeToFetch = activeTab === 'buy' ? 'sell' : 'buy';
+            
+            // --- Manual/Static Company Offers ---
+            const manualOffers = [
+                { id: 'manual1', sellerName: 'Growfy Official', sellerAvatar: 'https://i.ibb.co/MDBx20R/growfy-logo.png', sellerFeedback: 100, pricePerPoint: 1.15, availablePoints: 99999, minLimit: 1000, maxLimit: 25000, paymentMethods: ['bkash', 'nagad'], isManual: true, status: 'inactive'},
+                { id: 'manual2', sellerName: 'Trusted Exchange', sellerAvatar: 'https://i.ibb.co/MDBx20R/growfy-logo.png', sellerFeedback: 100, pricePerPoint: 1.18, availablePoints: 50000, minLimit: 500, maxLimit: 10000, paymentMethods: ['bkash'], isManual: true, status: 'inactive' }
+            ];
+
+            try {
+                const snapshot = await db.collection('p2p_ads')
+                                     .where('adType', '==', adTypeToFetch)
+                                     .orderBy('pricePerPoint', adTypeToFetch === 'sell' ? 'asc' : 'desc')
+                                     .get();
+                
+                const userOffers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const allOffers = [...manualOffers, ...userOffers]; // Combine manual and user offers
+                renderOffers(allOffers, activeTab);
+            } catch (error) {
+                console.error("Error fetching offers: ", error);
+                offerList.innerHTML = '<p class="loading-msg">অফার লোড করা সম্ভব হয়নি।</p>';
+                renderOffers(manualOffers, activeTab); // Show only manual offers on error
+            }
+        }
+
+        // --- Check for Pending Orders (Simulation) ---
+        function checkPendingOrders(userId) {
+            // ** বাস্তব প্রয়োগে, এখানে ফায়ারবেস থেকে ডেটা চেক করতে হবে **
+            // যেমন: db.collection('p2p_trades').where('buyerId' or 'sellerId', '==', userId).where('status', '==', 'pending').get()
+            // .then(snapshot => { if (!snapshot.empty) { show notification } })
+            const hasPendingOrders = true; // ডেমোর জন্য true করে রাখা হলো
+            if (hasPendingOrders) {
+                historyIconBadge.style.display = 'block';
+            } else {
+                historyIconBadge.style.display = 'none';
+            }
+        }
+
+        // --- Auth State and Event Listeners ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                fetchAndRenderOffers('buy');
+                checkPendingOrders(user.uid);
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+        buyBtn.addEventListener('click', () => {
+            buyBtn.classList.add('active'); sellBtn.classList.remove('active');
+            fetchAndRenderOffers('buy');
+        });
+        sellBtn.addEventListener('click', () => {
+            sellBtn.classList.add('active'); buyBtn.classList.remove('active');
+            fetchAndRenderOffers('sell');
+        });
+    </script>
+</body>
+</html>

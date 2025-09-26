@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - ট্রেড বিবরণী</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 60px; 
+            padding-bottom: 80px; /* Action footer için yer */
+        }
+        
+        /* --- Header --- */
+        .main-header { 
+            position: fixed; z-index: 1000; top: 0; left: 0; right: 0;
+            background: var(--card-bg-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        .header-title { font-size: 18px; font-weight: 700; }
+        .header-icon a { font-size: 20px; color: var(--text-color); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        
+        .main-content { max-width: 500px; margin: 0 auto; padding: 15px; animation: fadeIn 0.4s; }
+
+        .status-card {
+            background: var(--white-color);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .status-card.pending { border-left: 5px solid var(--warning-color); }
+        .status-card.completed { border-left: 5px solid var(--success-color); }
+        .status-card h2 { font-size: 16px; margin-bottom: 5px; color: var(--subtle-text-color); }
+        .status-card .amount { font-size: 28px; font-weight: 700; }
+        .status-card .countdown { font-size: 14px; font-weight: 600; color: var(--danger-color); margin-top: 8px; }
+
+        .details-section { background: var(--card-bg-color); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .section-title { font-weight: 700; margin-bottom: 10px; }
+        .detail-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+        .detail-row .label { color: var(--subtle-text-color); }
+        .detail-row .value { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .copy-btn { background: none; border: none; cursor: pointer; color: var(--primary-color); }
+
+        /* --- Chat System --- */
+        .chat-container {
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            height: 300px; /* Adjust as needed */
+        }
+        .chat-messages { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; }
+        .message-bubble { max-width: 80%; padding: 8px 12px; border-radius: 18px; margin-bottom: 8px; font-size: 14px; }
+        .message-bubble.sent { background-color: var(--primary-color); color: var(--white-color); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .message-bubble.received { background-color: var(--border-color); color: var(--text-color); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-input { display: flex; gap: 10px; }
+        .chat-input input { flex-grow: 1; border: 1px solid var(--border-color); padding: 10px; border-radius: 20px; }
+        .chat-input button { background-color: var(--primary-color); color: var(--white-color); border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 16px; }
+
+        /* --- Action Footer --- */
+        .action-footer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--card-bg-color);
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .action-btn { width: 100%; max-width: 480px; padding: 13px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .btn-confirm { background-color: var(--success-color); color: var(--white-color); }
+        .btn-release { background-color: var(--primary-color); color: var(--white-color); }
+        .btn-cancel { background-color: var(--danger-color); color: var(--white-color); }
+        .action-btn:disabled { background-color: #ccc; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-icon"><a href="my_orders.html"><i class="fas fa-arrow-left"></i></a></div>
+        <h2 class="header-title">ট্রেড বিবরণী</h2>
+        <div class="header-icon"><a href="#"><i class="fas fa-info-circle"></i></a></div>
+    </header>
+
+    <main class="main-content" id="tradeDetailsContainer" style="display:none;">
+        <div class="status-card" id="statusCard">
+            <h2 id="orderStatusText">লোড হচ্ছে...</h2>
+            <p class="amount" id="orderAmountBDT">৳0.00</p>
+            <div class="countdown" id="countdownTimer"></div>
+        </div>
+
+        <div class="details-section" id="paymentDetailsSection" style="display:none;">
+            <h3 class="section-title">পেমেন্টের বিবরণী</h3>
+            <!-- Payment details will be inserted here by JS -->
+        </div>
+
+        <div class="details-section">
+            <h3 class="section-title">অর্ডারের বিবরণী</h3>
+            <div class="detail-row">
+                <span class="label">পরিমাণ</span>
+                <span class="value" id="orderAmountPoints">0 পয়েন্ট</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">মূল্য</span>
+                <span class="value" id="orderPrice">৳0.00 / পয়েন্ট</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">অর্ডার আইডি</span>
+                <span class="value" id="orderId">...</span>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Chat messages will be appended here -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="মেসেজ লিখুন...">
+                <button id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="action-footer" id="actionFooter">
+        <!-- Action buttons will be rendered here by JS -->
+    </footer>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+            authDomain: "growfy-cd6ac.firebaseapp.com",
+            projectId: "growfy-cd6ac",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const tradeDetailsContainer = document.getElementById('tradeDetailsContainer');
+        const actionFooter = document.getElementById('actionFooter');
+        const chatMessages = document.getElementById('chatMessages');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+        const chatInput = document.getElementById('chatInput');
+
+        let tradeId = null;
+        let currentUserId = null;
+        let tradeData = null;
+        let userRole = null;
+        let countdownInterval = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            tradeId = params.get('id');
+            if (!tradeId) {
+                alert("অর্ডার আইডি পাওয়া যায়নি।");
+                window.location.href = 'my_orders.html';
+                return;
+            }
+
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUserId = user.uid;
+                    listenForTradeUpdates();
+                    listenForChatMessages();
+                } else { window.location.replace('auth.html'); }
+            });
+        });
+
+        function listenForTradeUpdates() {
+            db.collection('p2p_trades').doc(tradeId).onSnapshot(doc => {
+                if (!doc.exists) {
+                    alert("অর্ডারটি খুঁজে পাওয়া যায়নি।");
+                    return;
+                }
+                tradeData = { id: doc.id, ...doc.data() };
+                userRole = tradeData.buyerId === currentUserId ? 'buyer' : 'seller';
+                renderTradeDetails();
+                tradeDetailsContainer.style.display = 'block';
+            }, err => console.error("Error listening for trade updates:", err));
+        }
+
+        function renderTradeDetails() {
+            // Update order details
+            document.getElementById('orderAmountBDT').textContent = `৳${tradeData.amountBDT.toLocaleString('bn-BD')}`;
+            document.getElementById('orderAmountPoints').textContent = `${tradeData.amountPoints.toLocaleString('bn-BD')} পয়েন্ট`;
+            document.getElementById('orderPrice').textContent = `৳${(tradeData.amountBDT / tradeData.amountPoints).toFixed(2)} / পয়েন্ট`;
+            document.getElementById('orderId').textContent = tradeData.id.slice(0, 10) + '...';
+            
+            updateStatusCard();
+            updatePaymentDetails();
+            updateActionFooter();
+        }
+
+        function updateStatusCard() {
+            const statusCard = document.getElementById('statusCard');
+            const statusText = document.getElementById('orderStatusText');
+            const countdownEl = document.getElementById('countdownTimer');
+            
+            statusCard.className = 'status-card'; // Reset classes
+            
+            clearInterval(countdownInterval); // Clear previous timer
+            countdownEl.style.display = 'none';
+
+            let statusMessage = '';
+            switch(tradeData.status) {
+                case 'pending':
+                    statusMessage = userRole === 'buyer' ? `বিক্রেতাকে পেমেন্ট করুন` : `ক্রেতার পেমেন্টের জন্য অপেক্ষা করুন`;
+                    statusCard.classList.add('pending');
+                    startCountdown();
+                    break;
+                case 'payment_done':
+                    statusMessage = userRole === 'buyer' ? `বিক্রেতার পয়েন্ট রিলিজের জন্য অপেক্ষা করুন` : `পেমেন্ট যাচাই করে পয়েন্ট রিলিজ করুন`;
+                    statusCard.classList.add('pending');
+                    break;
+                case 'completed':
+                    statusMessage = 'ট্রেড সফলভাবে সম্পন্ন হয়েছে';
+                    statusCard.classList.add('completed');
+                    break;
+                case 'cancelled':
+                    statusMessage = 'ট্রেডটি বাতিল করা হয়েছে';
+                    break;
+            }
+            statusText.textContent = statusMessage;
+        }
+        
+        function updatePaymentDetails() {
+            const paymentSection = document.getElementById('paymentDetailsSection');
+            if (userRole === 'buyer' && tradeData.status === 'pending') {
+                paymentSection.style.display = 'block';
+                let paymentHTML = '<h3 class="section-title">পেমেন্টের বিবরণী</h3>';
+                for (const method in tradeData.sellerInfo.paymentDetails) {
+                    const number = tradeData.sellerInfo.paymentDetails[method];
+                    paymentHTML += `
+                        <div class="detail-row">
+                            <span class="label">${method.charAt(0).toUpperCase() + method.slice(1)}</span>
+                            <span class="value">${number} <button class="copy-btn" onclick="copyToClipboard('${number}')"><i class="fas fa-copy"></i></button></span>
+                        </div>`;
+                }
+                paymentSection.innerHTML = paymentHTML;
+            } else {
+                paymentSection.style.display = 'none';
+            }
+        }
+        
+        function updateActionFooter() {
+            let footerHTML = '';
+            if (tradeData.status === 'pending' && userRole === 'buyer') {
+                footerHTML = `<button class="action-btn btn-confirm" onclick="confirmPayment()">আমি পেমেন্ট করেছি</button>`;
+            } else if (tradeData.status === 'payment_done' && userRole === 'seller') {
+                footerHTML = `<button class="action-btn btn-release" onclick="releasePoints()">পয়েন্ট রিলিজ করুন</button>`;
+            } else {
+                footerHTML = ''; // No action needed
+            }
+            actionFooter.innerHTML = footerHTML;
+        }
+
+        async function confirmPayment() {
+            if (!confirm("আপনি কি নিশ্চিত যে আপনি সঠিক পরিমাণ টাকা বিক্রেতাকে পাঠিয়েছেন?")) return;
+            await db.collection('p2p_trades').doc(tradeId).update({ status: 'payment_done' });
+        }
+        
+        async function releasePoints() {
+            if (!confirm("আপনি কি নিশ্চিত যে আপনি ক্রেতার কাছ থেকে সঠিক পরিমাণ পেমেন্ট পেয়েছেন? পয়েন্ট রিলিজ করার পর এটি আর ফেরানো যাবে না।")) return;
+            
+            const sellerRef = db.collection('users').doc(tradeData.sellerId);
+            const buyerRef = db.collection('users').doc(tradeData.buyerId);
+            const tradeRef = db.collection('p2p_trades').doc(tradeId);
+
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const sellerDoc = await transaction.get(sellerRef);
+                    if (!sellerDoc.exists) throw new Error("বিক্রেতার একাউন্ট পাওয়া যায়নি।");
+
+                    const lockedPoints = sellerDoc.data().lockedPoints || 0;
+                    if (lockedPoints < tradeData.amountPoints) {
+                        throw new Error("আপনার লকড্ ব্যালেন্সে পর্যাপ্ত পয়েন্ট নেই।");
+                    }
+                    
+                    // 1. Update trade status
+                    transaction.update(tradeRef, { status: 'completed' });
+                    // 2. Decrement seller's locked points
+                    transaction.update(sellerRef, { lockedPoints: firebase.firestore.FieldValue.increment(-tradeData.amountPoints) });
+                    // 3. Increment buyer's total points
+                    transaction.update(buyerRef, { totalPoints: firebase.firestore.FieldValue.increment(tradeData.amountPoints) });
+                });
+                alert("পয়েন্ট সফলভাবে রিলিজ করা হয়েছে!");
+            } catch (error) {
+                alert("একটি সমস্যা হয়েছে: " + error.message);
+                console.error("Point release failed:", error);
+            }
+        }
+
+        function startCountdown() {
+            const countdownEl = document.getElementById('countdownTimer');
+            const createdAt = tradeData.createdAt.toDate();
+            const timeLimitMinutes = tradeData.timeLimitMinutes || 15;
+            const expiryTime = new Date(createdAt.getTime() + timeLimitMinutes * 60000);
+
+            countdownInterval = setInterval(() => {
+                const now = new Date();
+                const diff = expiryTime - now;
+
+                if (diff <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownEl.textContent = "সময় শেষ";
+                    // TODO: Auto-cancel logic
+                    return;
+                }
+
+                const minutes = Math.floor((diff / 1000 / 60) % 60);
+                const seconds = Math.floor((diff / 1000) % 60);
+                countdownEl.textContent = `সময় বাকি: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                countdownEl.style.display = 'block';
+            }, 1000);
+        }
+
+        // --- Chat Functions ---
+        function listenForChatMessages() {
+            db.collection('p2p_trades').doc(tradeId).collection('messages').orderBy('timestamp')
+              .onSnapshot(querySnapshot => {
+                  chatMessages.innerHTML = '';
+                  querySnapshot.forEach(doc => {
+                      const msg = doc.data();
+                      const bubbleClass = msg.senderId === currentUserId ? 'sent' : 'received';
+                      chatMessages.innerHTML += `<div class="message-bubble ${bubbleClass}">${msg.text}</div>`;
+                  });
+                  chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to bottom
+              });
+        }
+        
+        async function sendChatMessage() {
+            const text = chatInput.value.trim();
+            if (text === '') return;
+
+            await db.collection('p2p_trades').doc(tradeId).collection('messages').add({
+                text: text,
+                senderId: currentUserId,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            chatInput.value = '';
+        }
+
+        sendChatBtn.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("নম্বরটি কপি করা হয়েছে!");
+            }).catch(err => {
+                console.error('Copy failed', err);
+            });
+        }
+    </script>
+</body>
+</html>

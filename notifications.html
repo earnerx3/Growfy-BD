@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growfy - নোটিফিকেশন</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Interstitial অ্যাডের জন্য SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='9885140' data-sdk='show_9885140'></script>
+    
+    <!-- ব্যানার অ্যাডের জন্য SDK (এখানে আপনার ব্যানার Zone ID ব্যবহার করুন) -->
+    <script src='//libtl.com/sdk.js' data-zone='BANNER_ZONE_ID' data-sdk='show_BANNER_ZONE_ID'></script>
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --verified-color: #1d9bf0;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --border-color: #e9ecef;
+            --like-color: #e74c3c;
+            --comment-color: #1877f2;
+            --follow-color: #27ae60;
+            --system-color: #8e44ad;
+            --shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--background-color); 
+            color: var(--text-color); 
+            padding-top: 75px; 
+            padding-bottom: 75px; 
+        }
+        
+        .main-header { 
+            position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; 
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 28px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 1000; padding: 0 20px; 
+            display: flex; align-items: center; justify-content: space-between; height: 55px; 
+        }
+        .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: var(--primary-color); }
+        .header-icons { display: flex; gap: 10px; }
+        .header-icon a { 
+            font-size: 18px; color: var(--subtle-text-color); background-color: #e4e6eb; width: 36px; height: 36px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; 
+        }
+        .header-icon a.active-page {
+            color: var(--primary-color);
+            background-color: #e7f3ff;
+        }
+
+        .main-content { max-width: 500px; margin: 0 auto; padding: 10px; }
+
+        /* *** নতুন: ব্যানার অ্যাডের কন্টেইনার *** */
+        #bannerAdContainer {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 50px; /* ব্যানার লোড হওয়ার আগে একটি ন্যূনতম উচ্চতা */
+            background-color: var(--card-bg-color);
+            border-radius: 12px;
+        }
+
+        .notifications-container {
+            background-color: var(--card-bg-color);
+            border-radius: 16px;
+            padding: 10px 0;
+            box-shadow: var(--shadow);
+            min-height: 200px;
+        }
+
+        .container-header {
+            padding: 5px 15px 15px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .container-header h2 { font-size: 20px; font-weight: 700; }
+        .container-header .mark-read-btn {
+            background: none; border: none; color: var(--primary-color);
+            font-weight: 600; font-size: 14px; cursor: pointer;
+        }
+        
+        .notification-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 15px;
+            text-decoration: none; color: var(--text-color); transition: background-color 0.2s; position: relative;
+        }
+        .notification-item:not(:last-child) { border-bottom: 1px solid var(--border-color); }
+        .notification-item:hover { background-color: #f7f8fa; }
+        
+        .notification-item.unread { background-color: #f2f8ff; }
+        .notification-item.unread::after {
+            content: ''; position: absolute; right: 15px; top: 50%;
+            transform: translateY(-50%); width: 8px; height: 8px;
+            background-color: var(--primary-color); border-radius: 50%;
+        }
+
+        .notification-icon {
+            width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
+            flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+            font-size: 20px; color: var(--white-color); position: relative;
+        }
+        
+        .icon-like { background-color: var(--like-color); }
+        .icon-comment { background-color: var(--comment-color); }
+        .icon-follow { background-color: var(--follow-color); }
+        .icon-system { background-color: var(--system-color); }
+
+        .notification-icon .sender-avatar {
+            width: 100%; height: 100%; border-radius: 50%;
+        }
+        .notification-icon .icon-overlay {
+            position: absolute; bottom: -2px; right: -2px;
+            width: 20px; height: 20px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 10px; border: 2px solid white;
+        }
+
+        .notification-content { flex-grow: 1; }
+        .notification-text { font-size: 15px; line-height: 1.5; margin-bottom: 2px; }
+        .notification-text strong { font-weight: 700; }
+        .verified-badge { color: var(--verified-color); font-size: 14px; margin-left: 2px; }
+        .notification-time { font-size: 12px; color: var(--subtle-text-color); }
+        .empty-message { text-align: center; padding: 40px 20px; color: var(--subtle-text-color); }
+        
+        .bottom-nav { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center; height: 55px; border-radius: 28px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 1000; }
+        .nav-item-wrapper { flex: 1; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #aaa; }
+        .nav-item i { font-size: 20px; }
+        .nav-item span { font-size: 10px; margin-top: 3px; } 
+        .nav-item.active { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <span class="logo-text">Growfy</span>
+        <div class="header-icons">
+            <div class="header-icon"><a href="search.html"><i class="fas fa-search"></i></a></div>
+            <div class="header-icon"><a href="notifications.html" class="active-page"><i class="fas fa-bell"></i></a></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- ব্যানার অ্যাডের জন্য নতুন কন্টেইনার -->
+        <div id="bannerAdContainer"></div>
+        
+        <div class="notifications-container">
+            <div class="container-header">
+                <h2>নোটিফিকেশন</h2>
+                <button class="mark-read-btn" id="markAllReadBtn">সবগুলো পড়া হয়েছে</button>
+            </div>
+            <div id="notificationList">
+                <p class="empty-message">লোড হচ্ছে...</p>
+            </div>
+        </div>
+    </main>
+    
+    <div class="bottom-nav">
+        <!-- নেভিগেশন আইটেম -->
+        <div class="nav-item-wrapper"><a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>ফিড</span></a></div>
+        <div class="nav-item-wrapper"><a href="tasks.html" class="nav-item"><i class="fas fa-tasks"></i><span>টাস্ক</span></a></div>
+        <div class="nav-item-wrapper"><a href="share_market.html" class="nav-item"><i class="fas fa-chart-line"></i><span>মার্কেট</span></a></div>
+        <div class="nav-item-wrapper"><a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>লিডারবোর্ড</span></a></div>
+        <div class="nav-item-wrapper"><a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>প্রোফাইল</span></a></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          projectId: "growfy-cd6ac"
+          // ... other config
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const notificationList = document.getElementById('notificationList');
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        let currentUserId = null;
+        let lastAdShown = 0;
+
+        // *** নতুন ফাংশন: স্বয়ংক্রিয় Interstitial বিজ্ঞাপন দেখানোর জন্য ***
+        function showInterstitialAd() {
+            const now = Date.now();
+            if (now - lastAdShown < 40000) { // ৪০ সেকেন্ড cooldown
+                return;
+            }
+            if (typeof show_9885140 === 'function') {
+                show_9885140().catch(e => console.error("Interstitial ad error:", e));
+                lastAdShown = now;
+            }
+        }
+        
+        // *** নতুন ফাংশন: ব্যানার বিজ্ঞাপন লোড করার জন্য ***
+        function loadBannerAd() {
+            // ব্যানার Zone ID দিয়ে এই ফাংশনটি কল করতে হবে
+            // আপনার আসল ব্যানার Zone ID এখানে দিন
+            const BANNER_ZONE_ID = 'BANNER_ZONE_ID'; 
+            if (typeof window[`show_${BANNER_ZONE_ID}`] === 'function') {
+                const adContainer = document.getElementById('bannerAdContainer');
+                if(adContainer) {
+                    window[`show_${BANNER_ZONE_ID}`](adContainer);
+                }
+            } else {
+                console.warn("Banner Ad SDK function not found. Make sure you have the correct Zone ID.");
+            }
+        }
+
+        function timeAgo(timestamp) {
+            if (!timestamp || !timestamp.toDate) return 'কিছুক্ষণ আগে';
+            const now = new Date();
+            const seconds = Math.floor((now - timestamp.toDate()) / 1000);
+            if (seconds < 60) return "এইমাত্র";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} মিনিট আগে`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} ঘন্টা আগে`;
+            const days = Math.floor(hours / 24);
+            return `${days} দিন আগে`;
+        }
+
+        function renderNotification(notification) {
+            const { id, type, senderName, senderAvatar, senderIsVerified, text, link, read, createdAt } = notification;
+            const verifiedBadge = senderIsVerified ? `<i class="fas fa-check-circle verified-badge"></i>` : '';
+            
+            let iconHtml = '';
+            let messageHtml = '';
+            const senderHtml = `<strong>${senderName}</strong>${verifiedBadge}`;
+
+            switch(type) {
+                case 'like':
+                    iconHtml = `<div class="notification-icon"><img src="${senderAvatar}" class="sender-avatar"><span class="icon-overlay icon-like"><i class="fas fa-heart"></i></span></div>`;
+                    messageHtml = `${senderHtml} আপনার পোস্টে লাইক দিয়েছেন।`;
+                    break;
+                case 'comment':
+                    iconHtml = `<div class="notification-icon"><img src="${senderAvatar}" class="sender-avatar"><span class="icon-overlay icon-comment"><i class="fas fa-comment"></i></span></div>`;
+                    messageHtml = `${senderHtml} আপনার পোস্টে মন্তব্য করেছেন: "${text}"`;
+                    break;
+                case 'follow':
+                    iconHtml = `<div class="notification-icon"><img src="${senderAvatar}" class="sender-avatar"><span class="icon-overlay icon-follow"><i class="fas fa-user-plus"></i></span></div>`;
+                    messageHtml = `${senderHtml} আপনাকে ফলো করা শুরু করেছেন।`;
+                    break;
+                case 'system_announcement':
+                    iconHtml = `<div class="notification-icon icon-system"><i class="fas fa-bullhorn"></i></div>`;
+                    messageHtml = `<strong>${senderName}:</strong> ${text}`;
+                    break;
+                default:
+                    iconHtml = `<div class="notification-icon"><img src="${senderAvatar}" class="sender-avatar"></div>`;
+                    messageHtml = text;
+            }
+
+            return `
+                <a href="${link || '#'}" class="notification-item ${!read ? 'unread' : ''}" data-id="${id}">
+                    ${iconHtml}
+                    <div class="notification-content">
+                        <p class="notification-text">${messageHtml}</p>
+                        <span class="notification-time">${timeAgo(createdAt)}</span>
+                    </div>
+                </a>
+            `;
+        }
+
+        function fetchNotifications(userId) {
+            const notificationsRef = db.collection('users').doc(userId).collection('notifications')
+                .orderBy('createdAt', 'desc').limit(30);
+
+            notificationsRef.onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    notificationList.innerHTML = '<p class="empty-message">আপনার জন্য কোনো নোটিফিকেশন নেই।</p>';
+                    return;
+                }
+                
+                let notificationsHtml = '';
+                snapshot.forEach(doc => {
+                    notificationsHtml += renderNotification({ id: doc.id, ...doc.data() });
+                });
+                notificationList.innerHTML = notificationsHtml;
+            }, error => {
+                console.error("Error fetching notifications:", error);
+                notificationList.innerHTML = '<p class="empty-message">নোটিফিকেশন লোড করা সম্ভব হয়নি।</p>';
+            });
+        }
+
+        async function markAsRead(notificationId) {
+            if (!currentUserId || !notificationId) return;
+            const notifRef = db.collection('users').doc(currentUserId).collection('notifications').doc(notificationId);
+            try {
+                await notifRef.update({ read: true });
+            } catch (error) { console.error("Error marking notification as read:", error); }
+        }
+
+        async function markAllAsRead() {
+            if (!currentUserId) return;
+            const unreadNotifsQuery = db.collection('users').doc(currentUserId).collection('notifications').where('read', '==', false);
+            
+            try {
+                const snapshot = await unreadNotifsQuery.get();
+                if (snapshot.empty) return;
+
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, { read: true });
+                });
+                await batch.commit();
+            } catch (error) { console.error("Error marking all notifications as read:", error); }
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                fetchNotifications(user.uid);
+
+                // *** বিজ্ঞাপন দেখানো শুরু করা হচ্ছে ***
+                loadBannerAd(); // ব্যানার বিজ্ঞাপন লোড করুন
+                setTimeout(showInterstitialAd, 5000); // পেজ লোডের ৫ সেকেন্ড পর প্রথমবার Interstitial দেখান
+                setInterval(showInterstitialAd, 40000); // এরপর প্রতি ৪০ সেকেন্ড পর পর দেখানোর চেষ্টা করুন
+
+            } else {
+                window.location.replace('auth.html');
+            }
+        });
+
+        notificationList.addEventListener('click', (e) => {
+            const item = e.target.closest('.notification-item');
+            if (item) {
+                markAsRead(item.dataset.id);
+            }
+        });
+
+        markAllReadBtn.addEventListener('click', markAllAsRead);
+
+    </script>
+</body>
+</html>

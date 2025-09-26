@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>শেয়ার ডিটেইলস</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #1877f2;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --background-color: #f0f2f5; 
+            --card-bg-color: #ffffff;
+            --text-color: #050505; 
+            --subtle-text-color: #65676b;
+            --white-color: #ffffff;
+            --border-color: #e9ecef;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Noto Sans Bengali', sans-serif; 
+            background-color: var(--card-bg-color); 
+            color: var(--text-color); 
+            padding-top: 70px; 
+            padding-bottom: 90px;
+        }
+        
+        .detail-header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background-color: var(--card-bg-color); padding: 15px;
+            display: flex; align-items: center; gap: 15px;
+            border-bottom: 1px solid var(--border-color); z-index: 1000;
+        }
+        .back-btn { font-size: 22px; color: var(--text-color); text-decoration: none;}
+        .header-title .name { font-size: 18px; font-weight: 700; }
+        .header-title .ticker { font-size: 14px; color: var(--subtle-text-color); }
+
+        .main-content { padding: 15px; }
+        .price-display { margin-bottom: 20px; animation: fadeIn 0.3s; }
+        .price-display .current-price { font-size: 36px; font-weight: 700; }
+        .price-display .price-change { font-size: 16px; font-weight: 600; }
+        .price-change.positive { color: var(--success-color); }
+        .price-change.negative { color: var(--danger-color); }
+
+        .chart-container { height: 220px; margin-bottom: 25px; }
+
+        /* NEW: User Holdings Card */
+        .holdings-card {
+            background-color: #eff5ff;
+            border: 1px solid #c9deff;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            animation: fadeIn 0.5s;
+        }
+        .holdings-card h3 { font-size: 16px; margin-bottom: 15px; color: var(--primary-color); }
+        .holdings-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .info-item .label { font-size: 13px; color: var(--subtle-text-color); }
+        .info-item .value { font-size: 18px; font-weight: 600; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-item { background-color: var(--background-color); padding: 15px; border-radius: 12px; }
+        .stat-item .label { font-size: 13px; color: var(--subtle-text-color); margin-bottom: 5px; }
+        .stat-item .value { font-size: 16px; font-weight: 600; }
+        
+        .action-buttons {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            display: flex; gap: 15px; padding: 15px;
+            background-color: var(--card-bg-color);
+            border-top: 1px solid var(--border-color); z-index: 1000;
+        }
+        .action-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; color: var(--white-color); cursor: pointer; }
+        .btn-buy { background-color: var(--success-color); }
+        .btn-sell { background-color: var(--danger-color); }
+        .action-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+        /* Trade Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-panel { background: var(--card-bg-color); border-radius: 20px; width: 95%; max-width: 400px; padding: 25px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; }
+        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
+        .info-text { font-size: 12px; color: var(--subtle-text-color); margin-top: 5px; }
+        .total-cost { text-align: center; margin: 20px 0; }
+        .total-cost .label { color: var(--subtle-text-color); }
+        .total-cost .amount { font-size: 22px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <header class="detail-header">
+        <a href="share_market.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <div class="header-title">
+            <p class="name" id="shareNameHeader">লোড হচ্ছে...</p>
+            <p class="ticker" id="shareTickerHeader"></p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="price-display">
+            <p class="current-price" id="currentPrice">৳0.00</p>
+            <p class="price-change positive" id="priceChange"><i class="fas fa-arrow-up"></i> 0.00%</p>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+        </div>
+
+        <div class="holdings-card">
+            <h3><i class="fas fa-wallet"></i> আপনার হোল্ডিং</h3>
+            <div class="holdings-info">
+                <div class="info-item">
+                    <p class="label">আপনার শেয়ার</p>
+                    <p class="value" id="userShares">0</p>
+                </div>
+                <div class="info-item">
+                    <p class="label">বর্তমান মূল্য</p>
+                    <p class="value" id="userHoldingsValue">৳0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <p class="label">মার্কেট ক্যাপ</p>
+                <p class="value" id="marketCap">৳0</p>
+            </div>
+            <div class="stat-item">
+                <p class="label">মোট সাপ্লাই</p>
+                <p class="value" id="totalSupply">0</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="action-buttons">
+        <button class="action-btn btn-buy" id="buyBtn">কিনুন</button>
+        <button class="action-btn btn-sell" id="sellBtn" disabled>বিক্রি করুন</button>
+    </div>
+
+    <div class="modal-overlay" id="tradeModal">
+        <div class="modal-panel">
+            <div class="modal-header"><h3 id="modalTitle"></h3><button class="close-modal">&times;</button></div>
+            <form id="tradeForm">
+                <div class="form-group">
+                    <label for="shareAmount">শেয়ারের পরিমাণ</label>
+                    <input type="number" id="shareAmount" class="form-input" placeholder="0" required min="1">
+                    <p class="info-text" id="availableInfo"></p>
+                </div>
+                <div class="total-cost"><p class="label">মোট মূল্য</p><p class="amount" id="totalCostAmount">৳0.00</p></div>
+                <button type="submit" class="action-btn" id="confirmTradeBtn">নিশ্চিত করুন</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase Config remains the same
+        const firebaseConfig = {
+          apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
+          authDomain: "growfy-cd6ac.firebaseapp.com",
+          databaseURL: "https://growfy-cd6ac-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "growfy-cd6ac",
+          storageBucket: "growfy-cd6ac.firebasestorage.app",
+          messagingSenderId: "452195809736",
+          appId: "1:452195809736:web:11204e0fd1e01e92a9a8fd",
+          measurementId: "G-DFDJRCX4ED"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentShareData = null;
+        let currentUserData = null;
+        let userPortfolio = { quantity: 0 };
+        let priceChart = null;
+
+        const tradeModal = document.getElementById('tradeModal');
+        const confirmTradeBtn = document.getElementById('confirmTradeBtn');
+        const shareAmountInput = document.getElementById('shareAmount');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const shareId = params.get('id');
+
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    if (shareId) {
+                        fetchUserData(user.uid);
+                        fetchShareDetails(shareId, user.uid);
+                    } else { document.body.innerHTML = "<h1>শেয়ার পাওয়া যায়নি।</h1>"; }
+                } else { window.location.replace('auth.html'); }
+            });
+        });
+
+        function fetchUserData(userId) {
+            db.collection('users').doc(userId).onSnapshot(doc => {
+                if (doc.exists) currentUserData = { id: doc.id, ...doc.data() };
+            });
+        }
+        
+        function fetchShareDetails(shareId, userId) {
+            db.collection('shares').doc(shareId).onSnapshot(doc => {
+                if (doc.exists) {
+                    currentShareData = { id: doc.id, ...doc.data() };
+                    updateUI(currentShareData);
+                    fetchUserPortfolioForShare(userId, shareId);
+                } else { console.error("Share not found!"); }
+            });
+        }
+        
+        function fetchUserPortfolioForShare(userId, shareId) {
+            db.collection('users').doc(userId).collection('portfolio').doc(shareId).onSnapshot(doc => {
+                userPortfolio = doc.exists ? doc.data() : { quantity: 0 };
+                updateHoldingsUI(userPortfolio);
+            });
+        }
+        
+        function updateUI(share) {
+            document.getElementById('shareNameHeader').textContent = share.name;
+            document.getElementById('shareTickerHeader').textContent = share.ticker;
+            document.getElementById('currentPrice').textContent = `৳${share.currentPrice.toFixed(2)}`;
+            const changeEl = document.getElementById('priceChange');
+            const change = ((share.currentPrice - share.initialPrice) / share.initialPrice) * 100 || 0;
+            changeEl.innerHTML = `<i class="fas ${change >= 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> ${change.toFixed(2)}%`;
+            changeEl.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+            const marketCap = (share.currentPrice * share.totalSupply).toLocaleString('bn-BD');
+            document.getElementById('marketCap').textContent = `৳${marketCap}`;
+            document.getElementById('totalSupply').textContent = share.totalSupply.toLocaleString('bn-BD');
+            renderPriceChart(share.currentPrice);
+        }
+        
+        function updateHoldingsUI(portfolio) {
+            const sellBtn = document.getElementById('sellBtn');
+            const userSharesEl = document.getElementById('userShares');
+            const userHoldingsValueEl = document.getElementById('userHoldingsValue');
+            
+            const quantity = portfolio.quantity || 0;
+            userSharesEl.textContent = quantity.toLocaleString('bn-BD');
+            
+            if (currentShareData) {
+                const totalValue = quantity * currentShareData.currentPrice;
+                userHoldingsValueEl.textContent = `৳${totalValue.toLocaleString('bn-BD', { minimumFractionDigits: 2 })}`;
+            }
+
+            sellBtn.disabled = quantity <= 0;
+        }
+
+        function renderPriceChart(currentPrice) { /* ... Chart rendering logic remains same ... */
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            let priceData = [currentPrice];
+            for(let i=0; i<15; i++) {
+                priceData.unshift(priceData[0] / (1 + (Math.random() - 0.49) * 0.02));
+            }
+            if (priceChart) priceChart.destroy();
+            priceChart = new Chart(ctx, { type: 'line', data: { labels: Array(priceData.length).fill(''), datasets: [{ label: 'Price', data: priceData, borderColor: priceData[priceData.length-1] >= priceData[0] ? 'rgba(39, 174, 96, 0.8)' : 'rgba(231, 76, 60, 0.8)', backgroundColor: priceData[priceData.length-1] >= priceData[0] ? 'rgba(39, 174, 96, 0.1)' : 'rgba(231, 76, 60, 0.1)', borderWidth: 2, fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } }, elements: { point: { radius: 0 } } }
+            });
+        }
+        
+        // --- Trade Modal and Transaction Logic ---
+        document.getElementById('buyBtn').addEventListener('click', () => openTradeModal('BUY'));
+        document.getElementById('sellBtn').addEventListener('click', () => openTradeModal('SELL'));
+        
+        function openTradeModal(type) {
+            document.getElementById('tradeForm').reset();
+            document.getElementById('totalCostAmount').textContent = '৳0.00';
+            const availableInfo = document.getElementById('availableInfo');
+            
+            if (type === 'BUY') {
+                document.getElementById('modalTitle').textContent = `শেয়ার কিনুন (${currentShareData.ticker})`;
+                confirmTradeBtn.className = 'action-btn btn-buy';
+                confirmTradeBtn.textContent = 'কিনুন';
+                shareAmountInput.max = '';
+                availableInfo.textContent = `আপনার কাছে আছে: ৳${currentUserData.totalPoints.toLocaleString('bn-BD')}`;
+            } else {
+                document.getElementById('modalTitle').textContent = `শেয়ার বিক্রি করুন (${currentShareData.ticker})`;
+                confirmTradeBtn.className = 'action-btn btn-sell';
+                confirmTradeBtn.textContent = 'বিক্রি করুন';
+                shareAmountInput.max = userPortfolio.quantity; // Set max sellable amount
+                availableInfo.textContent = `আপনার কাছে আছে: ${userPortfolio.quantity.toLocaleString('bn-BD')} টি শেয়ার`;
+            }
+            tradeModal.dataset.type = type; // Store transaction type
+            tradeModal.classList.add('active');
+        }
+
+        tradeModal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-modal')) {
+                tradeModal.classList.remove('active');
+            }
+        });
+        
+        shareAmountInput.addEventListener('input', () => {
+            const amount = Math.abs(parseInt(shareAmountInput.value)) || 0;
+            const total = amount * currentShareData.currentPrice;
+            document.getElementById('totalCostAmount').textContent = `৳${total.toLocaleString('bn-BD', { minimumFractionDigits: 2 })}`;
+        });
+        
+        document.getElementById('tradeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = tradeModal.dataset.type;
+            const quantity = Math.abs(parseInt(shareAmountInput.value));
+            
+            if (!quantity || quantity <= 0) {
+                alert("অনুগ্রহ করে সঠিক পরিমাণ লিখুন।");
+                return;
+            }
+
+            confirmTradeBtn.disabled = true;
+            confirmTradeBtn.textContent = 'প্রসেসিং...';
+
+            try {
+                // *** Main Firestore Transaction ***
+                await db.runTransaction(async (transaction) => {
+                    const userRef = db.collection('users').doc(currentUserData.id);
+                    const shareRef = db.collection('shares').doc(currentShareData.id);
+                    const portfolioRef = userRef.collection('portfolio').doc(currentShareData.id);
+                    const transactionRef = userRef.collection('transactions').doc();
+
+                    // 1. Get current data within the transaction
+                    const userDoc = await transaction.get(userRef);
+                    const shareDoc = await transaction.get(shareRef);
+                    const portfolioDoc = await transaction.get(portfolioRef);
+
+                    if (!userDoc.exists || !shareDoc.exists) throw new Error("ডেটা পাওয়া যায়নি।");
+
+                    const userPoints = userDoc.data().totalPoints;
+                    const sharePrice = shareDoc.data().currentPrice;
+                    const totalCost = quantity * sharePrice;
+
+                    // 2. Perform validation and operations
+                    if (type === 'BUY') {
+                        if (userPoints < totalCost) throw new Error("আপনার পর্যাপ্ত পয়েন্ট নেই।");
+                        
+                        // Update user points
+                        transaction.update(userRef, { totalPoints: userPoints - totalCost });
+                        // Update portfolio
+                        const currentQuantity = portfolioDoc.exists ? portfolioDoc.data().quantity : 0;
+                        transaction.set(portfolioRef, { quantity: currentQuantity + quantity }, { merge: true });
+                        // Record transaction
+                        transaction.set(transactionRef, { type: 'share_buy', amount: totalCost, details: `${quantity}টি ${shareDoc.data().ticker} শেয়ার কেনা হয়েছে`, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+
+                    } else { // SELL
+                        const currentQuantity = portfolioDoc.exists ? portfolioDoc.data().quantity : 0;
+                        if (currentQuantity < quantity) throw new Error("আপনার কাছে পর্যাপ্ত শেয়ার নেই।");
+
+                        // Update user points
+                        transaction.update(userRef, { totalPoints: userPoints + totalCost });
+                        // Update portfolio
+                        transaction.update(portfolioRef, { quantity: currentQuantity - quantity });
+                        // Record transaction
+                        transaction.set(transactionRef, { type: 'share_sell', amount: totalCost, details: `${quantity}টি ${shareDoc.data().ticker} শেয়ার বিক্রি করা হয়েছে`, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    }
+
+                    // 3. Update share price based on demand/supply
+                    const priceChangeFactor = type === 'BUY' ? 1.005 : 0.995; // +0.5% for buy, -0.5% for sell
+                    const newPrice = sharePrice * priceChangeFactor;
+                    transaction.update(shareRef, { currentPrice: newPrice });
+                });
+
+                alert(`${type === 'BUY' ? 'কেনা' : 'বিক্রি'} সফল হয়েছে!`);
+                tradeModal.classList.remove('active');
+
+            } catch (error) {
+                alert(`লেনদেন ব্যর্থ হয়েছে: ${error.message}`);
+            } finally {
+                confirmTradeBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
