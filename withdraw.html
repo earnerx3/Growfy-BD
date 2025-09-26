@@ -39,7 +39,6 @@
         .main-header .logo-text { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary-color); }
         .main-content { max-width: 500px; margin: 0 auto; padding: 0 15px; animation: fadeIn 0.4s; }
         
-        /* <<< নতুন স্টাইল শুরু: উইথড্র পেজের জন্য >>> */
         .withdraw-container { padding: 10px 0; }
         .balance-display-card {
             background: var(--card-bg-color);
@@ -80,17 +79,15 @@
         .info-box ul li { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
         .info-box ul li i { color: var(--primary-color); }
         
-        .confirm-button { width: 100%; background: linear-gradient(45deg, var(--primary-color), #4c8cff); color: var(--white-color); border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); }
+        .confirm-button { width: 100%; background: linear-gradient(45deg, var(--primary-color), #4c8cff); color: var(--white-color); border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); text-decoration: none; text-align: center; }
         .confirm-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(24, 119, 242, 0.4); }
         .confirm-button:disabled { background: #a0c7f8; cursor: not-allowed; box-shadow: none; transform: none; }
         
-        /* অপর্যাপ্ত ব্যালেন্স মেসেজ */
-        .insufficient-balance-message { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 16px; padding: 25px; font-size: 15px; text-align: center; line-height: 1.7; }
-
+        .info-message-box { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 16px; padding: 25px; font-size: 15px; text-align: center; line-height: 1.7; }
+        
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); z-index: 9999; display: none; justify-content: center; align-items: center; }
         .loading-overlay .fas { font-size: 40px; color: var(--primary-color); animation: spin 1s linear infinite; }
         
-        /* <<< নতুন স্টাইল: সাকসেস Modal এর জন্য >>> */
         .success-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
         .success-modal-overlay.active { display: flex; opacity: 1; }
         .success-modal-panel { background: var(--card-bg-color); border-radius: 16px; width: 90%; max-width: 340px; padding: 30px 25px; text-align: center; animation: fadeIn 0.3s; }
@@ -104,16 +101,16 @@
     <header class="main-header">
         <a href="wallet.html" style="color: var(--text-color); font-size: 20px;"><i class="fas fa-arrow-left"></i></a>
         <span class="logo-text">উইথড্র</span>
-        <span style="width: 20px;"></span> </header>
+        <span style="width: 20px;"></span>
+    </header>
 
     <main class="main-content">
         <div class="withdraw-container">
-            <div id="mainForm">
+            <div id="mainForm" style="display: none;">
                 <div class="balance-display-card">
                     <p>আপনার বর্তমান ব্যালেন্স</p>
                     <span id="userBalance">লোড হচ্ছে...</span>
                 </div>
-
                 <div class="step-card">
                     <div class="form-group">
                         <label>১. পরিমাণ নির্বাচন করুন (পয়েন্ট)</label>
@@ -126,7 +123,6 @@
                         <p id="amountError" class="error-message">অনুগ্রহ করে সঠিক পরিমাণ লিখুন।</p>
                     </div>
                 </div>
-
                 <div class="step-card">
                     <div class="form-group">
                         <label>২. পেমেন্ট মেথড</label>
@@ -141,22 +137,34 @@
                         <input type="text" id="accountInput" class="account-input" placeholder="আগে পেমেন্ট মেথড সিলেক্ট করুন">
                     </div>
                 </div>
-                
                 <div class="info-box">
                     <ul>
                         <li><i class="fas fa-info-circle"></i>উইথড্র অনুরোধ ২৪ ঘন্টার মধ্যে সম্পন্ন করা হয়।</li>
                         <li><i class="fas fa-check-circle"></i>আপনার অ্যাকাউন্ট তথ্য সঠিক কিনা তা নিশ্চিত করুন।</li>
                     </ul>
                 </div>
-
                 <button class="confirm-button" id="confirmBtn" disabled>কনফার্ম করুন</button>
             </div>
 
             <div id="insufficientBalanceMessage" style="display: none;">
-                <div class="insufficient-balance-message">
+                <div class="info-message-box">
                     <p>দুঃখিত, উইথড্র করার জন্য আপনার অ্যাকাউন্টে ন্যূনতম <strong>২,০০০</strong> পয়েন্ট থাকতে হবে। আরও পয়েন্ট অর্জন করতে অ্যাপ ব্যবহার করুন।</p>
                 </div>
             </div>
+
+            <div id="monetizationRequiredMessage" style="display: none;">
+                <div class="info-message-box" style="border-color: #a8c8f8; background-color: #eef5ff; text-align: center;">
+                    <i class="fas fa-hand-holding-usd" style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px; font-size: 18px;">উইথড্র করার জন্য মনিটাইজেশন প্রয়োজন</h3>
+                    <p style="margin-bottom: 20px; color: var(--subtle-text-color);">
+                        আপনার প্রোফাইল এখনো মনিটাইজড নয়। উইথড্র সুবিধা চালু করতে, অনুগ্রহ করে আপনার প্রোফাইল থেকে মনিটাইজেশনের শর্তগুলো পূরণ করে আবেদন করুন।
+                    </p>
+                    <a href="monetization.html" class="confirm-button" style="display: inline-block; width: auto; padding: 12px 30px;">
+                        এখনই আবেদন করুন
+                    </a>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -180,7 +188,6 @@
           apiKey: "AIzaSyD47fqKpliPqz64458u4Oxc2ymn6VEdPvw",
           authDomain: "growfy-cd6ac.firebaseapp.com",
           projectId: "growfy-cd6ac",
-          // আপনার বাকি কনফিগারেশন...
         };
         
         firebase.initializeApp(firebaseConfig);
@@ -202,25 +209,48 @@
         const presetButtons = document.querySelectorAll('.preset-amount');
         const paymentMethods = document.querySelectorAll('.method-option');
         const loadingOverlay = document.getElementById('loadingOverlay');
-        const successModal = document.getElementById('successModal'); // <<< নতুন
+        const successModal = document.getElementById('successModal');
 
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUserId = user.uid;
+                loadingOverlay.style.display = 'flex'; // ডেটা লোড হওয়ার সময় লোডার দেখান
                 db.collection('users').doc(user.uid).get().then(doc => {
                     if (doc.exists) {
-                        currentUserPoints = doc.data().totalPoints || 0;
-                        document.getElementById('userBalance').textContent = currentUserPoints.toLocaleString('bn-BD');
+                        const userData = doc.data();
+                        const isMonetized = userData.isMonetized || false;
+                        currentUserPoints = userData.totalPoints || 0;
 
-                        if (currentUserPoints < MIN_BALANCE_REQUIRED) {
+                        // <<< মূল পরিবর্তন এখানে >>>
+                        // প্রথমে চেক করুন ব্যবহারকারী মনিটাইজড কিনা
+                        if (!isMonetized) {
+                            // যদি মনিটাইজড না হয়, তাহলে শুধু মনিটাইজেশন বার্তা দেখান
                             document.getElementById('mainForm').style.display = 'none';
-                            document.getElementById('insufficientBalanceMessage').style.display = 'block';
+                            document.getElementById('insufficientBalanceMessage').style.display = 'none';
+                            document.getElementById('monetizationRequiredMessage').style.display = 'block';
+                        } else {
+                            // যদি মনিটাইজড হয়, তাহলে আগের মতো ব্যালেন্স চেক করুন
+                            document.getElementById('userBalance').textContent = currentUserPoints.toLocaleString('bn-BD');
+                            
+                            if (currentUserPoints < MIN_BALANCE_REQUIRED) {
+                                document.getElementById('mainForm').style.display = 'none';
+                                document.getElementById('insufficientBalanceMessage').style.display = 'block';
+                            } else {
+                                document.getElementById('mainForm').style.display = 'block';
+                            }
                         }
                     }
+                    loadingOverlay.style.display = 'none'; // ডেটা লোড শেষ হলে লোডার লুকান
+                }).catch(error => {
+                    console.error("Error fetching user data: ", error);
+                    loadingOverlay.style.display = 'none';
                 });
-            } else { window.location.replace('auth.html'); }
+            } else { 
+                window.location.replace('auth.html'); 
+            }
         });
 
+        // বাকি জাভাস্ক্রিপ্ট কোড অপরিবর্তিত থাকবে
         function validateForm() {
             const amount = parseInt(amountInput.value, 10);
             const accountNumber = accountInput.value.trim();
@@ -268,7 +298,6 @@
 
         accountInput.addEventListener('input', validateForm);
         
-        // <<< পরিবর্তন: নতুন Modal দেখানোর ফাংশন >>>
         function showSuccessModal(amount) {
             document.getElementById('successMessage').textContent = `আপনার ${amount.toLocaleString('bn-BD')} পয়েন্টের উইথড্র অনুরোধ সফলভাবে জমা হয়েছে। ২৪ ঘন্টার মধ্যে এটি সম্পন্ন করা হবে।`;
             successModal.classList.add('active');
@@ -297,7 +326,7 @@
             try {
                 await batch.commit();
                 loadingOverlay.style.display = 'none';
-                showSuccessModal(amountToWithdraw); // <<< পরিবর্তন: alert এর বদলে Modal
+                showSuccessModal(amountToWithdraw);
             } catch (error) {
                 console.error("Error processing withdrawal:", error);
                 alert('উইথড্র প্রক্রিয়া সম্পন্ন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।');
